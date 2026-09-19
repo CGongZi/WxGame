@@ -122,8 +122,9 @@ export class WeaponController extends Component {
         // 记录鼠标相对玩家的方向（用于远程射击）
         const loc  = e.getUILocation();
         const ppos = this.node.position;
-        const dx   = loc.x - 667 + ppos.x;   // 横屏中心 X=667
-        const dy   = loc.y - 375 + ppos.y;   // 横屏中心 Y=375
+        // Canvas 原点在中心：鼠标画布坐标 = loc - 屏幕中心，再减玩家位置得方向
+        const dx   = (loc.x - 667) - ppos.x;
+        const dy   = (loc.y - 375) - ppos.y;
         const len  = Math.sqrt(dx * dx + dy * dy);
         if (len > 5) this._mouseDir.set(dx / len, dy / len, 0);
     }

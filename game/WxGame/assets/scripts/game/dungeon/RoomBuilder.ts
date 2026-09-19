@@ -101,8 +101,9 @@ export class RoomBuilder extends Component {
 
         // 门洞（上下墙各挖一个门）
         if (Math.abs(h - this.wallThickness) < 2) {  // 是横墙
+            const dw = 80;
             g.fillColor = new Color(8, 5, 16, 255);
-            g.rect(-this.doorWidth / 2, y, this.doorWidth, h);
+            g.rect(-dw / 2, y, dw, h);
             g.fill();
         }
     }

@@ -60,11 +60,12 @@ export class PlayerController extends Component {
         const len = Math.sqrt(dx * dx + dy * dy);
         const nx = dx / len, ny = dy / len;
 
-        const cur = this.node.position;
-        const nx2 = Math.max(-this.mapBoundX, Math.min(this.mapBoundX,
-                             cur.x + nx * this.moveSpeed * dt));
-        const ny2 = Math.max(-this.mapBoundY, Math.min(this.mapBoundY,
-                             cur.y + ny * this.moveSpeed * dt));
+        // Canvas 原点在中心，边界 = ±roomHalf
+        const cur  = this.node.position;
+        const minX = -this.mapBoundX,  maxX = this.mapBoundX;
+        const minY = -this.mapBoundY,  maxY = this.mapBoundY;
+        const nx2  = Math.max(minX, Math.min(maxX, cur.x + nx * this.moveSpeed * dt));
+        const ny2  = Math.max(minY, Math.min(maxY, cur.y + ny * this.moveSpeed * dt));
         this.node.setPosition(nx2, ny2, 0);
 
         // 水平翻转朝向
