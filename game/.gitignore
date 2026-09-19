@@ -1,0 +1,16 @@
+# Cocos Creator 生成文件（不提交）
+library/
+local/
+temp/
+build/
+node_modules/
+
+# 编辑器缓存
+*.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+
+# 构建产物（微信小游戏）
+build/wechat-mini-game/
