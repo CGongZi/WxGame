@@ -1,36 +1,37 @@
-import { _decorator, Component, Vec2, Node, input, Input, EventKeyboard, KeyCode } from 'cc';
-import { GameConfig } from '../../core/GameConfig';
+import { _decorator, Component, Node, Vec3, input, Input,
+         EventKeyboard, KeyCode, UITransform, Sprite, Color,
+         Graphics } from 'cc';
 import { GameManager } from '../../core/GameManager';
 import { eventBus, GameEvents } from '../../core/EventBus';
 
 const { ccclass, property } = _decorator;
 
-/**
- * 玩家控制器
- * - 浏览器：WASD / 方向键 移动
- * - 手机：JoystickController 调用 setMoveDirection()
- */
 @ccclass('PlayerController')
 export class PlayerController extends Component {
 
-    @property(Node)
-    spriteNode: Node = null!;
+    @property({ min: 50 })
+    moveSpeed: number = 200;
 
-    @property(Node)
-    weaponHolder: Node = null!;
+    // 地图边界（像素，对应 RoomBuilder.roomW/H 的一半减去墙厚）
+    @property mapBoundX: number = 310;
+    @property mapBoundY: number = 490;
 
-    private _joystickDir: Vec2 = new Vec2(0, 0);   // 摇杆输入
-    private _keyboardDir: Vec2 = new Vec2(0, 0);    // 键盘输入
-    private _isInvincible: boolean = false;
-    private _invincibleTimer: number = 0;
-    private _isDead: boolean = false;
-    private _speed: number = GameConfig.PLAYER_BASE_SPEED;
+    private _dir = new Vec3();
+    private _pos = new Vec3();
 
-    // 记录哪些键被按下
-    private _keys: Set<KeyCode> = new Set();
+    // 输入方向
+    private _keys  = { up: false, down: false, left: false, right: false };
+    private _joyDir = new Vec3();   // 来自摇杆
+
+    private _hp    = 100;
+    private _maxHp = 100;
+    private _invincibleTimer = 0;   // 受击无敌时间
 
     onLoad() {
-        eventBus.on(GameEvents.PLAYER_REVIVED, this._onRevived, this);
+        this._hp    = 100;
+        this._maxHp = 100;
+        this._drawPlayer();
+        this._emitHp();
     }
 
     onEnable() {
@@ -41,99 +42,129 @@ export class PlayerController extends Component {
     onDisable() {
         input.off(Input.EventType.KEY_DOWN, this._onKeyDown, this);
         input.off(Input.EventType.KEY_UP,   this._onKeyUp,   this);
-        this._keys.clear();
-    }
-
-    onDestroy() {
-        eventBus.off(GameEvents.PLAYER_REVIVED, this._onRevived, this);
     }
 
     update(dt: number) {
-        if (this._isDead) return;
+        if (this._invincibleTimer > 0) this._invincibleTimer -= dt;
 
-        // 合并键盘 + 摇杆输入（摇杆优先）
-        this._updateKeyboardDir();
-        const moveDir = this._joystickDir.lengthSqr() > 0.01
-            ? this._joystickDir
-            : this._keyboardDir;
+        // 键盘方向
+        const kx = (this._keys.right ? 1 : 0) - (this._keys.left ? 1 : 0);
+        const ky = (this._keys.up    ? 1 : 0) - (this._keys.down ? 1 : 0);
 
-        if (moveDir.lengthSqr() > 0.01) {
-            const pos = this.node.position;
-            const nx = pos.x + moveDir.x * this._speed * dt;
-            const ny = pos.y + moveDir.y * this._speed * dt;
+        // 合并键盘+摇杆（摇杆优先）
+        const jLen = Math.sqrt(this._joyDir.x ** 2 + this._joyDir.y ** 2);
+        const useJoy = jLen > 0.1;
+        const dx = useJoy ? this._joyDir.x : kx;
+        const dy = useJoy ? this._joyDir.y : ky;
 
-            // 限制在画布范围内
-            const halfW = GameConfig.CANVAS_WIDTH  * 0.5 - 20;
-            const halfH = GameConfig.CANVAS_HEIGHT * 0.5 - 20;
-            this.node.setPosition(
-                Math.max(-halfW, Math.min(halfW, nx)),
-                Math.max(-halfH, Math.min(halfH, ny)),
-                0,
-            );
-            this._updateFacing(moveDir);
-        }
+        if (dx === 0 && dy === 0) return;
 
-        // 无敌帧计时
-        if (this._isInvincible) {
-            this._invincibleTimer -= dt;
-            if (this._invincibleTimer <= 0) this._isInvincible = false;
-        }
+        // 归一化
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const nx = dx / len, ny = dy / len;
+
+        // 更新位置（带边界限制）
+        const cur = this.node.position;
+        const nx2 = Math.max(-this.mapBoundX, Math.min(this.mapBoundX, cur.x + nx * this.moveSpeed * dt));
+        const ny2 = Math.max(-this.mapBoundY, Math.min(this.mapBoundY, cur.y + ny * this.moveSpeed * dt));
+        this.node.setPosition(nx2, ny2, 0);
+
+        // 朝向翻转
+        const s = this.node.scale;
+        if (dx !== 0) this.node.setScale(dx < 0 ? -Math.abs(s.x) : Math.abs(s.x), s.y, s.z);
     }
 
-    /** JoystickController 调用 */
-    setMoveDirection(dir: Vec2) {
-        this._joystickDir.set(dir);
+    /** 接收摇杆方向 [-1, 1] */
+    setJoystickDir(x: number, y: number) {
+        this._joyDir.set(x, y, 0);
     }
 
+    /** 被史莱姆攻击调用 */
     takeDamage(amount: number) {
-        if (this._isInvincible || this._isDead) return;
-        try {
-            const died = GameManager.instance.takeDamage(amount);
-            this._startInvincible();
-            if (died) this._isDead = true;
-        } catch {}
+        if (this._invincibleTimer > 0) return;   // 无敌帧
+        this._hp = Math.max(0, this._hp - amount);
+        this._invincibleTimer = 0.8;
+        this._emitHp();
+        this._flashDamage();
+        console.log(`[Player] 受到伤害 -${amount}，剩余 HP: ${this._hp}`);
+
+        if (this._hp <= 0) {
+            try { GameManager.instance.onPlayerDeath(); } catch {}
+            eventBus.emit(GameEvents.GAME_OVER, {});
+        }
     }
 
     heal(amount: number) {
-        try { GameManager.instance.heal(amount); } catch {}
+        this._hp = Math.min(this._maxHp, this._hp + amount);
+        this._emitHp();
     }
 
-    // ── 键盘 ──
+    get currentHp() { return this._hp; }
+    get maxHp()     { return this._maxHp; }
 
-    private _onKeyDown(e: EventKeyboard) { this._keys.add(e.keyCode); }
-    private _onKeyUp(e: EventKeyboard)   { this._keys.delete(e.keyCode); }
+    // ── 私有 ─────────────────────────────────────────────
 
-    private _updateKeyboardDir() {
-        let x = 0, y = 0;
-        if (this._keys.has(KeyCode.KEY_A) || this._keys.has(KeyCode.ARROW_LEFT))  x -= 1;
-        if (this._keys.has(KeyCode.KEY_D) || this._keys.has(KeyCode.ARROW_RIGHT)) x += 1;
-        if (this._keys.has(KeyCode.KEY_S) || this._keys.has(KeyCode.ARROW_DOWN))  y -= 1;
-        if (this._keys.has(KeyCode.KEY_W) || this._keys.has(KeyCode.ARROW_UP))    y += 1;
-
-        if (x !== 0 || y !== 0) {
-            const len = Math.sqrt(x * x + y * y);
-            this._keyboardDir.set(x / len, y / len);
-        } else {
-            this._keyboardDir.set(0, 0);
-        }
+    private _onKeyDown(e: EventKeyboard) {
+        if (e.keyCode === KeyCode.KEY_W || e.keyCode === KeyCode.ARROW_UP)    this._keys.up    = true;
+        if (e.keyCode === KeyCode.KEY_S || e.keyCode === KeyCode.ARROW_DOWN)  this._keys.down  = true;
+        if (e.keyCode === KeyCode.KEY_A || e.keyCode === KeyCode.ARROW_LEFT)  this._keys.left  = true;
+        if (e.keyCode === KeyCode.KEY_D || e.keyCode === KeyCode.ARROW_RIGHT) this._keys.right = true;
     }
 
-    // ── 工具 ──
-
-    private _startInvincible() {
-        this._isInvincible = true;
-        this._invincibleTimer = GameConfig.PLAYER_INVINCIBLE_TIME;
+    private _onKeyUp(e: EventKeyboard) {
+        if (e.keyCode === KeyCode.KEY_W || e.keyCode === KeyCode.ARROW_UP)    this._keys.up    = false;
+        if (e.keyCode === KeyCode.KEY_S || e.keyCode === KeyCode.ARROW_DOWN)  this._keys.down  = false;
+        if (e.keyCode === KeyCode.KEY_A || e.keyCode === KeyCode.ARROW_LEFT)  this._keys.left  = false;
+        if (e.keyCode === KeyCode.KEY_D || e.keyCode === KeyCode.ARROW_RIGHT) this._keys.right = false;
     }
 
-    private _updateFacing(dir: Vec2) {
-        const target = this.spriteNode ?? this.node;
-        const scale = target.scale;
-        if (dir.x < 0)      target.setScale(-Math.abs(scale.x), scale.y, scale.z);
-        else if (dir.x > 0) target.setScale( Math.abs(scale.x), scale.y, scale.z);
+    private _emitHp() {
+        eventBus.emit(GameEvents.PLAYER_HP_CHANGED, { current: this._hp, max: this._maxHp });
     }
 
-    private _onRevived() {
-        this._isDead = false;
-        this._startInvincible();
+    /** 用 Graphics 画玩家（40x40 青色骑士轮廓） */
+    private _drawPlayer() {
+        // 先清掉旧的 Graphics
+        let g = this.getComponent(Graphics);
+        if (!g) g = this.addComponent(Graphics);
+        g.clear();
+
+        const s = 40;   // 玩家尺寸
+        const h = s / 2;
+
+        // 身体
+        g.fillColor = new Color(0, 220, 120, 255);
+        g.roundRect(-h, -h, s, s, 6);
+        g.fill();
+
+        // 盔甲高光
+        g.fillColor = new Color(100, 255, 180, 200);
+        g.roundRect(-h + 4, h - 10, s - 8, 6, 3);
+        g.fill();
+
+        // 头盔（顶部深色）
+        g.fillColor = new Color(0, 160, 90, 255);
+        g.roundRect(-h + 4, h - 20, s - 8, 12, 4);
+        g.fill();
+
+        // 眼缝（白色）
+        g.fillColor = new Color(200, 255, 230, 255);
+        g.rect(-12, 4, 8, 4);
+        g.fill();
+        g.rect(4, 4, 8, 4);
+        g.fill();
+
+        // UITransform 大小
+        const ui = this.getComponent(UITransform) ?? this.addComponent(UITransform);
+        ui.setContentSize(s, s);
+    }
+
+    private _flashDamage() {
+        // 受击变红闪烁
+        const g = this.getComponent(Graphics);
+        if (!g) return;
+        // 简单放大缩小做受击感
+        this.node.setScale(1.3, 1.3, 1);
+        this.scheduleOnce(() => this.node.setScale(1, 1, 1), 0.1);
     }
 }
