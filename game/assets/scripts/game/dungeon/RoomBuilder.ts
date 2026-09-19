@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Graphics, UITransform, Color } from 'cc';
+import { _decorator, Component, Node, Graphics, UITransform, Color, Widget } from 'cc';
 
 const { ccclass, property } = _decorator;
 
@@ -20,6 +20,14 @@ export class RoomBuilder extends Component {
     wallThickness: number = 48;
 
     onLoad() {
+        // Widget：自动居中对齐 Canvas
+        const widget = this.getComponent(Widget) ?? this.addComponent(Widget);
+        widget.isAlignHorizontalCenter = true;
+        widget.isAlignVerticalCenter   = true;
+        widget.horizontalCenter        = 0;
+        widget.verticalCenter          = 0;
+        widget.alignMode               = Widget.AlignMode.ON_WINDOW_RESIZE;
+
         this._build();
     }
 
