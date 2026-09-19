@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, Label, Sprite, Color,
-         UITransform, Canvas, Vec3 } from 'cc';
+         UITransform, Vec3, find } from 'cc';
 import { eventBus, GameEvents } from '../../core/EventBus';
 
 const { ccclass, property } = _decorator;
