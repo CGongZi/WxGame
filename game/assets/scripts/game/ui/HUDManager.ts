@@ -48,7 +48,8 @@ export class HUDManager extends Component {
                     type:  wc.currentWeapon.type,
                 });
             }
-        }, 0.1);
+            this._refreshRemain();
+        }, 0.2);
     }
 
     onDestroy() {
