@@ -102,12 +102,12 @@ export class GameManager extends Component {
         eventBus.emit(GameEvents.WEAPON_EQUIPPED, weapon);
     }
 
-    /** 击杀怪物 */
+    /** 击杀怪物（只更新数据；事件由 SlimeEnemy._die 直接发，避免重复计数） */
     onEnemyKilled(enemyId: string) {
         this._runState.killCount++;
         this._progress.totalKills++;
         this._runState.score += 10;
-        eventBus.emit(GameEvents.ENEMY_KILLED, { enemyId });
+        // 注意：不在这里 emit ENEMY_KILLED，SlimeEnemy 已经直接 emit 过一次
     }
 
     /** 进入下一层 */
