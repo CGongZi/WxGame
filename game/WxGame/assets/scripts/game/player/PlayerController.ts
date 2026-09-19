@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, Vec3, input, Input,
-         EventKeyboard, KeyCode, UITransform, Graphics, Color } from 'cc';
+         EventKeyboard, KeyCode, UITransform, Graphics, Color, Label } from 'cc';
 import { eventBus, GameEvents } from '../../core/EventBus';
 
 const { ccclass, property } = _decorator;
@@ -20,10 +20,17 @@ export class PlayerController extends Component {
     private _hp    = 100;
     private _maxHp = 100;
     private _invincibleTimer = 0;
+    private _weaponEmoji = '🗡️';
+    private _weaponIconLabel: Label | null = null;
 
     onLoad() {
         this._drawKnight();
         this._emitHp();
+        eventBus.on(GameEvents.WEAPON_CHANGED, this._onWeaponChanged, this);
+    }
+
+    onDestroy() {
+        eventBus.off(GameEvents.WEAPON_CHANGED, this._onWeaponChanged, this);
     }
 
     onEnable() {
@@ -143,11 +150,33 @@ export class PlayerController extends Component {
         g.fillColor = new Color(180, 140, 60, 255);
         g.rect(-H,     -H + 18, 9, 4);   // 护手
         g.fill();
+
+        // ⑦ 武器 Emoji 图标（悬浮在头顶右上角）
+        // 找或创建武器图标节点
+        let iconNode = this.node.getChildByName('WeaponIcon');
+        if (!iconNode) {
+            iconNode = new Node('WeaponIcon');
+            iconNode.setParent(this.node);
+            iconNode.addComponent(UITransform).setContentSize(30, 30);
+        }
+        iconNode.setPosition(H - 2, H + 4, 0);   // 右上角
+        let lbl = iconNode.getComponent(Label);
+        if (!lbl) lbl = iconNode.addComponent(Label);
+        lbl.string   = this._weaponEmoji;
+        lbl.fontSize = 18;
+        this._weaponIconLabel = lbl;
     }
 
     private _emitHp() {
         eventBus.emit(GameEvents.PLAYER_HP_CHANGED,
                       { current: this._hp, max: this._maxHp });
+    }
+
+    private _onWeaponChanged(data: { emoji: string; name: string; type: string }) {
+        this._weaponEmoji = data.emoji;
+        if (this._weaponIconLabel) {
+            this._weaponIconLabel.string = data.emoji;
+        }
     }
 
     private _onKeyDown(e: EventKeyboard) {

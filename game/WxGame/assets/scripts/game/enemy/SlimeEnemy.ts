@@ -149,9 +149,12 @@ export class SlimeEnemy extends Component {
         this._state = 'dead';
         if (this._sprite)   this._sprite.color = this.C_DEAD;
         if (this._graphics) this.node.setScale(0.5, 0.5, 1);  // 死亡缩小
-        try { GameManager.instance.onEnemyKilled('slime-green'); } catch {}
+        // GameManager.onEnemyKilled 内部已经会 emit ENEMY_KILLED，不要重复 emit
+        try { GameManager.instance.onEnemyKilled('slime-green'); } catch {
+            // 编辑器没有 GameManager 时直接 emit
+            eventBus.emit(GameEvents.ENEMY_KILLED, { enemyId: 'slime-green' });
+        }
         try { GameManager.instance.addCoins(Math.ceil(Math.random() * 3)); } catch {}
-        eventBus.emit(GameEvents.ENEMY_KILLED, { enemyId: 'slime-green' });
         this.scheduleOnce(() => this.node.destroy(), 0.5);
     }
 

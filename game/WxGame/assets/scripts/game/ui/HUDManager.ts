@@ -23,11 +23,28 @@ export class HUDManager extends Component {
     private _hp      = 100;
 
     onLoad() {
+        this._killCount = 0;   // 每次场景加载重置
         this._buildUI();
         eventBus.on(GameEvents.PLAYER_HP_CHANGED,  this._onHp,     this);
         eventBus.on(GameEvents.COIN_COLLECTED,      this._onCoin,   this);
         eventBus.on(GameEvents.ENEMY_KILLED,        this._onKill,   this);
         eventBus.on(GameEvents.WEAPON_CHANGED,      this._onWeapon, this);
+    }
+
+    start() {
+        // start() 比 onLoad() 晚执行，此时 WeaponController 已初始化
+        // 主动查询当前武器并刷新显示
+        this.scheduleOnce(() => {
+            const wc = find('Game/Canvas/Player')?.getComponent('WeaponController') as any
+                    ?? find('Canvas/Player')?.getComponent('WeaponController') as any;
+            if (wc?.currentWeapon) {
+                this._onWeapon({
+                    name:  wc.currentWeapon.name,
+                    emoji: wc.currentWeapon.emoji,
+                    type:  wc.currentWeapon.type,
+                });
+            }
+        }, 0.1);
     }
 
     onDestroy() {
