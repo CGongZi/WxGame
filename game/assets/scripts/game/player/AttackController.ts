@@ -1,112 +1,78 @@
-import { _decorator, Component, Node, Vec2, input, Input,
-         EventKeyboard, KeyCode, EventMouse, find, Sprite, Color, tween, Vec3 } from 'cc';
+import { _decorator, Component, Vec3, input, Input,
+         EventKeyboard, KeyCode, EventMouse, Sprite, Color, tween } from 'cc';
 import { GameConfig } from '../../core/GameConfig';
-import { SlimeEnemy } from '../enemy/SlimeEnemy';
+import { EnemyRegistry } from '../enemy/EnemyRegistry';
 
 const { ccclass, property } = _decorator;
 
-/**
- * 玩家攻击控制器
- * - 空格键 / 鼠标左键：近战攻击
- * - 攻击范围内最近的敌人受到伤害
- */
 @ccclass('AttackController')
 export class AttackController extends Component {
 
-    @property({ min: 10 })
-    attackRange: number = 90;           // 攻击范围（像素）
+    @property({ min: 10 })  attackRange:    number = 120;
+    @property({ min: 1  })  attackDamage:   number = GameConfig.PLAYER_BASE_DAMAGE;
+    @property({ min: 0.1 }) attackCooldown: number = 0.5;
 
-    @property({ min: 1 })
-    attackDamage: number = GameConfig.PLAYER_BASE_DAMAGE;
+    private _cdTimer   = 0;
+    private _sprite: Sprite | null = null;
 
-    @property({ min: 0.1 })
-    attackCooldown: number = 0.5;       // 攻击 CD（秒）
+    // 攻击时玩家变白色闪一下
+    private readonly C_NORMAL = new Color(0,   255, 136, 255);  // 00FF88
+    private readonly C_ATTACK = new Color(255, 255, 255, 255);  // 白
 
-    @property(Node)
-    attackEffect: Node = null!;         // 攻击特效节点（可留空）
-
-    private _cooldownTimer: number = 0;
-    private _isAttacking: boolean = false;
+    onLoad() {
+        this._sprite = this.getComponent(Sprite);
+    }
 
     onEnable() {
-        input.on(Input.EventType.KEY_DOWN,    this._onKeyDown,    this);
-        input.on(Input.EventType.MOUSE_DOWN,  this._onMouseDown,  this);
+        input.on(Input.EventType.KEY_DOWN,   this._onKey,   this);
+        input.on(Input.EventType.MOUSE_DOWN, this._onMouse, this);
     }
 
     onDisable() {
-        input.off(Input.EventType.KEY_DOWN,   this._onKeyDown,    this);
-        input.off(Input.EventType.MOUSE_DOWN, this._onMouseDown,  this);
+        input.off(Input.EventType.KEY_DOWN,   this._onKey,   this);
+        input.off(Input.EventType.MOUSE_DOWN, this._onMouse, this);
     }
 
     update(dt: number) {
-        if (this._cooldownTimer > 0) this._cooldownTimer -= dt;
+        if (this._cdTimer > 0) this._cdTimer -= dt;
     }
 
-    // ── 输入 ──
-
-    private _onKeyDown(e: EventKeyboard) {
-        if (e.keyCode === KeyCode.SPACE) this._doAttack();
+    private _onKey(e: EventKeyboard) {
+        if (e.keyCode === KeyCode.SPACE || e.keyCode === KeyCode.KEY_J) {
+            this._doAttack();
+        }
     }
 
-    private _onMouseDown(e: EventMouse) {
-        // 左键攻击
-        if (e.getButton() === EventMouse.BUTTON_LEFT) this._doAttack();
+    private _onMouse(e: EventMouse) {
+        // 左键
+        if (e.getButton() === 0) this._doAttack();
     }
-
-    // ── 攻击逻辑 ──
 
     private _doAttack() {
-        if (this._cooldownTimer > 0 || this._isAttacking) return;
+        if (this._cdTimer > 0) return;
+        this._cdTimer = this.attackCooldown;
 
-        this._cooldownTimer = this.attackCooldown;
-        this._isAttacking = true;
+        const pos = this.node.position;
+        const enemies = EnemyRegistry.getInRange(pos.x, pos.y, this.attackRange);
 
-        // 在范围内找所有敌人
-        const enemies = this._findEnemiesInRange();
+        console.log(`[Attack] 范围内敌人: ${enemies.length}，攻击力: ${this.attackDamage}`);
 
         if (enemies.length > 0) {
-            // 打最近的一个
             enemies[0].takeDamage(this.attackDamage);
-            console.log(`[Attack] 命中 ${enemies[0].node.name}，伤害 ${this.attackDamage}`);
         }
 
-        // 播放攻击特效
-        this._playSlashEffect();
+        // 攻击视觉反馈：玩家闪白
+        if (this._sprite) {
+            this._sprite.color = this.C_ATTACK;
+            this.scheduleOnce(() => {
+                if (this._sprite) this._sprite.color = this.C_NORMAL;
+            }, 0.1);
+        }
 
-        this.scheduleOnce(() => { this._isAttacking = false; }, 0.15);
-    }
-
-    private _findEnemiesInRange(): SlimeEnemy[] {
-        const myPos = this.node.position;
-        const result: { enemy: SlimeEnemy; dist: number }[] = [];
-
-        // 查找场景中所有 SlimeEnemy 组件
-        const scene = this.node.scene;
-        const canvas = scene?.getChildByName('Game')?.getChildByName('Canvas');
-        if (!canvas) return [];
-
-        canvas.children.forEach(child => {
-            const enemy = child.getComponent(SlimeEnemy);
-            if (enemy && !enemy.isDead) {
-                const dx = child.position.x - myPos.x;
-                const dy = child.position.y - myPos.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist <= this.attackRange) {
-                    result.push({ enemy, dist });
-                }
-            }
-        });
-
-        // 按距离排序，最近的优先
-        result.sort((a, b) => a.dist - b.dist);
-        return result.map(r => r.enemy);
-    }
-
-    private _playSlashEffect() {
-        // 简单：让玩家节点短暂缩放表示攻击感
+        // 缩放弹跳感
         tween(this.node)
-            .to(0.05, { scale: new Vec3(1.3, 1.3, 1) })
-            .to(0.1,  { scale: new Vec3(1.0, 1.0, 1) })
+            .to(0.06, { scale: new Vec3(1.25, 1.25, 1) })
+            .to(0.12, { scale: new Vec3(1.0,  1.0,  1) })
             .start();
     }
 }
