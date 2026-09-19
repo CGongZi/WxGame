@@ -22,11 +22,6 @@ export class PlayerController extends Component {
     private _invincibleTimer = 0;
 
     onLoad() {
-        // 先移除旧 Sprite（如果有）
-        const { Sprite } = require('cc');
-        const sp = this.getComponent(Sprite);
-        if (sp) sp.destroy();
-
         this._drawKnight();
         this._emitHp();
     }
@@ -103,42 +98,50 @@ export class PlayerController extends Component {
         if (!g) g = this.addComponent(Graphics);
         g.clear();
 
-        // UITransform 设置为 48x48
         const ui = this.getComponent(UITransform) ?? this.addComponent(UITransform);
-        ui.setContentSize(48, 48);
+        ui.setContentSize(56, 56);
 
-        const S = 48, H = S / 2;
+        const S = 56, H = S / 2;  // 56×56，比史莱姆(64)略小但颜色完全不同
 
-        // ① 身体（蓝色盔甲）
-        g.fillColor = new Color(60, 140, 255, 255);
-        g.roundRect(-H, -H, S, S, 8);
+        // ① 身体 —— 亮蓝色（和绿色史莱姆完全不同）
+        g.fillColor = new Color(40, 160, 255, 255);
+        g.roundRect(-H, -H, S, S, 10);
         g.fill();
 
-        // ② 盔甲纹路（深蓝横条）
-        g.fillColor = new Color(30, 80, 200, 255);
-        g.rect(-H + 4, -4, S - 8, 6);
+        // ② 胸甲横纹
+        g.fillColor = new Color(20, 90, 200, 255);
+        g.rect(-H + 6, -6, S - 12, 8);
         g.fill();
 
-        // ③ 头盔（顶部深色）
-        g.fillColor = new Color(20, 60, 160, 255);
-        g.roundRect(-H + 4, H - 18, S - 8, 14, 4);
+        // ③ 头盔（顶部）
+        g.fillColor = new Color(10, 50, 140, 255);
+        g.roundRect(-H + 6, H - 20, S - 12, 16, 5);
         g.fill();
 
-        // ④ 眼缝（白色发光）
-        g.fillColor = new Color(200, 230, 255, 255);
-        g.rect(-14, H - 14, 10, 4);
+        // ④ 眼缝 —— 亮白色，醒目
+        g.fillColor = new Color(230, 245, 255, 255);
+        g.roundRect(-16, H - 17, 12, 5, 2);
         g.fill();
-        g.rect(4,   H - 14, 10, 4);
-        g.fill();
-
-        // ⑤ 盾牌（右下角小方块）
-        g.fillColor = new Color(180, 60, 60, 255);
-        g.roundRect(H - 14, -H + 4, 10, 14, 2);
+        g.roundRect(4,   H - 17, 12, 5, 2);
         g.fill();
 
-        // ⑥ 剑（左上角细线）
-        g.fillColor = new Color(220, 220, 180, 255);
-        g.rect(-H + 2, -2, 4, 20);
+        // ⑤ 红色盾牌（右侧）
+        g.fillColor = new Color(220, 50, 50, 255);
+        g.roundRect(H - 16, -H + 8, 12, 18, 3);
+        g.fill();
+        // 盾牌十字纹
+        g.fillColor = new Color(255, 180, 180, 200);
+        g.rect(H - 11, -H + 10, 2, 14);
+        g.fill();
+        g.rect(H - 15, -H + 16, 10, 2);
+        g.fill();
+
+        // ⑥ 银色长剑（左侧）
+        g.fillColor = new Color(200, 210, 220, 255);
+        g.rect(-H + 2, -H + 4, 5, 28);   // 剑身
+        g.fill();
+        g.fillColor = new Color(180, 140, 60, 255);
+        g.rect(-H,     -H + 18, 9, 4);   // 护手
         g.fill();
     }
 
