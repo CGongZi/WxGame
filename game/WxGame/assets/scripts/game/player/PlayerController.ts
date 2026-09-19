@@ -10,9 +10,9 @@ export class PlayerController extends Component {
     @property({ min: 50 })
     moveSpeed: number = 200;
 
-    // 房间边界（和 RoomBuilder.roomW/H 一致，减掉墙厚 48）
-    @property mapBoundX: number = 310;
-    @property mapBoundY: number = 490;
+    // 房间边界（横屏 roomW=1150/2-40, roomH=600/2-40）
+    @property mapBoundX: number = 535;
+    @property mapBoundY: number = 260;
 
     private _keys = { up: false, down: false, left: false, right: false };
     private _joyDir = new Vec3();

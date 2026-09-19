@@ -11,8 +11,8 @@ const { ccclass, property } = _decorator;
 export class FloorRenderer extends Component {
 
     @property({ min: 4  }) tileSize:  number = 48;
-    @property({ min: 2  }) cols:      number = 18;
-    @property({ min: 2  }) rows:      number = 30;
+    @property({ min: 2  }) cols:      number = 26;  // 横屏：1334/48 ≈ 26
+    @property({ min: 2  }) rows:      number = 14;  // 横屏：750/48  ≈ 14
 
     // 像素地牢配色
     private readonly C_DARK   = new Color( 38,  28,  52, 255);

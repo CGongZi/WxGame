@@ -57,12 +57,12 @@ export class HUDManager extends Component {
     // ── 构建 UI ────────────────────────────────────────────
 
     private _buildUI() {
-        // 获取画布尺寸（750×1334）
+        // 横屏设计分辨率 1334×750
         const cvs = this.node.scene?.getChildByName('Game')
                               ?.getChildByName('Canvas');
         const cvUI  = cvs?.getComponent(UITransform);
-        const W     = cvUI?.width  ?? 750;
-        const H     = cvUI?.height ?? 1334;
+        const W     = cvUI?.width  ?? 1334;
+        const H     = cvUI?.height ?? 750;
 
         // ── 左上角血条面板 ──
         const panel = this._makeNode('HPPanel', W * -0.5 + 20, H * 0.5 - 60, this.node);

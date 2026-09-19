@@ -11,10 +11,10 @@ const { ccclass, property } = _decorator;
 export class RoomBuilder extends Component {
 
     @property({ tooltip: '房间内部宽度（像素）' })
-    roomW: number = 720;
+    roomW: number = 1150;   // 横屏 1334 - 墙×2
 
     @property({ tooltip: '房间内部高度（像素）' })
-    roomH: number = 1100;
+    roomH: number = 600;    // 横屏 750 - 墙×2 - HUD
 
     @property({ tooltip: '墙厚（像素）' })
     wallThickness: number = 48;
