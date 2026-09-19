@@ -24,25 +24,41 @@ export class FloorRenderer extends Component {
         // 强制居中：不管 scene 文件里设了什么位置
         this.node.setPosition(0, 0, 0);
 
-        // ★ 禁用 Canvas 上的 Widget（Widget 在 ON_WINDOW_RESIZE 时会把 Canvas 位置打乱）
+        // ★ 调试：打印关键节点的实际坐标数值
         const canvasNode = this.node.parent;
         if (canvasNode) {
+            // 禁用 Widget
             const widget = canvasNode.getComponent(Widget);
-            if (widget) {
-                widget.enabled = false;
-                console.log('[Fix] Canvas Widget disabled');
-            }
+            if (widget) { widget.enabled = false; }
 
-            // ★ 强制修正 Camera orthoHeight = 375（设计高度750的一半）
+            // 读 Canvas UITransform 实际尺寸
+            const cvUI = canvasNode.getComponent(UITransform);
+            const cvW  = cvUI ? cvUI.width  : -1;
+            const cvH  = cvUI ? cvUI.height : -1;
+
+            // Canvas 世界坐标
+            const cvWP = canvasNode.worldPosition;
+
+            // Camera
             const camNode = canvasNode.getChildByName('Camera');
-            if (camNode) {
-                const cam = camNode.getComponent(Camera);
-                if (cam) {
-                    console.log('[CamFix] orthoHeight before:', cam.orthoHeight);
-                    cam.orthoHeight = 375;
-                    console.log('[CamFix] orthoHeight set to 375');
-                }
-            }
+            const cam = camNode?.getComponent(Camera);
+            const camOH = cam ? cam.orthoHeight : -1;
+            const camWP = camNode?.worldPosition;
+
+            // Floor 自身世界坐标
+            const flWP = this.node.worldPosition;
+
+            console.log(
+                '[DEBUG] Canvas worldPos=(' + cvWP.x.toFixed(0) + ',' + cvWP.y.toFixed(0) + ')' +
+                ' size=' + cvW.toFixed(0) + 'x' + cvH.toFixed(0)
+            );
+            console.log(
+                '[DEBUG] Camera worldPos=(' + (camWP?.x.toFixed(0) ?? '?') + ',' + (camWP?.y.toFixed(0) ?? '?') + ')' +
+                ' orthoHeight=' + camOH.toFixed(0)
+            );
+            console.log(
+                '[DEBUG] Floor  worldPos=(' + flWP.x.toFixed(0) + ',' + flWP.y.toFixed(0) + ')'
+            );
         }
 
         const ui = this.getComponent(UITransform) ?? this.addComponent(UITransform);
