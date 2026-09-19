@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Vec2, Sprite, Color, find } from 'cc';
+import { _decorator, Component, Node, Vec2, Sprite, Graphics, Color, find } from 'cc';
 import { GameConfig } from '../../core/GameConfig';
 import { GameManager } from '../../core/GameManager';
 import { eventBus, GameEvents } from '../../core/EventBus';
@@ -27,6 +27,7 @@ export class SlimeEnemy extends Component {
     private _attackTimer = 0;
     private _stunTimer = 0;
     private _sprite: Sprite | null = null;
+    private _graphics: Graphics | null = null;
 
     private readonly C_NORMAL = new Color( 60, 200,  80, 255);
     private readonly C_HIT    = new Color(255,  80,  80, 255);
@@ -35,7 +36,8 @@ export class SlimeEnemy extends Component {
     onLoad() {
         this._currentHp = this.hp;
         this._maxHp     = this.hp;
-        this._sprite    = this.getComponent(Sprite);
+        this._sprite   = this.getComponent(Sprite);
+        this._graphics = this.getComponent(Graphics);
         if (this._sprite) this._sprite.color = this.C_NORMAL;
 
         // 自动查找玩家
@@ -97,13 +99,17 @@ export class SlimeEnemy extends Component {
             position: this.node.position.clone(),
         });
 
-        // 受击闪红
+        // 受击闪红：Sprite 或 Graphics 都支持
         if (this._sprite) {
             this._sprite.color = this.C_HIT;
             this.scheduleOnce(() => {
                 if (this._sprite && this._state !== 'dead')
                     this._sprite.color = this.C_NORMAL;
             }, 0.12);
+        } else if (this._graphics) {
+            // Graphics 节点：整体透明度闪烁表示受击
+            this.node.setScale(1.15, 1.15, 1);
+            this.scheduleOnce(() => { this.node.setScale(1, 1, 1); }, 0.12);
         }
 
         this._state = 'stunned';
@@ -141,7 +147,8 @@ export class SlimeEnemy extends Component {
 
     private _die() {
         this._state = 'dead';
-        if (this._sprite) this._sprite.color = this.C_DEAD;
+        if (this._sprite)   this._sprite.color = this.C_DEAD;
+        if (this._graphics) this.node.setScale(0.5, 0.5, 1);  // 死亡缩小
         try { GameManager.instance.onEnemyKilled('slime-green'); } catch {}
         try { GameManager.instance.addCoins(Math.ceil(Math.random() * 3)); } catch {}
         eventBus.emit(GameEvents.ENEMY_KILLED, { enemyId: 'slime-green' });
