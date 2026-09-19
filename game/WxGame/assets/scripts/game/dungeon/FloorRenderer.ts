@@ -21,6 +21,9 @@ export class FloorRenderer extends Component {
     private readonly C_SHINE  = new Color(255, 255, 255,  12);
 
     onLoad() {
+        // 强制居中：不管 scene 文件里设了什么位置
+        this.node.setPosition(0, 0, 0);
+
         const ui = this.getComponent(UITransform) ?? this.addComponent(UITransform);
         const W  = this.cols * this.tileSize;
         const H  = this.rows * this.tileSize;

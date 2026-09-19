@@ -24,6 +24,9 @@ export class PlayerController extends Component {
     private _weaponIconLabel: Label | null = null;
 
     onLoad() {
+        // 强制出生在中心
+        this.node.setPosition(0, 0, 0);
+        console.log('[Player] worldPos =', this.node.worldPosition);
         this._drawKnight();
         this._emitHp();
         eventBus.on(GameEvents.WEAPON_CHANGED, this._onWeaponChanged, this);

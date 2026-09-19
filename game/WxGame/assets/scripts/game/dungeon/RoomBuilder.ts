@@ -20,6 +20,8 @@ export class RoomBuilder extends Component {
     wallThickness: number = 48;
 
     onLoad() {
+        // 强制居中：不管 scene 文件里设了什么位置
+        this.node.setPosition(0, 0, 0);
         this._build();
     }
 

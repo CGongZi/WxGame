@@ -33,6 +33,10 @@ export class EnemySpawner extends Component {
     ];
 
     onLoad() {
+        // 强制父节点居中
+        this.node.setPosition(0, 0, 0);
+        console.log('[EnemyLayer] worldPos =', this.node.worldPosition);
+
         if (!this.playerNode) {
             this.playerNode = find('Game/Canvas/Player') as Node;
             if (!this.playerNode) {
