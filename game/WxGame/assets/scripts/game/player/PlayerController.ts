@@ -11,12 +11,12 @@ export class PlayerController extends Component {
     @property({ min: 50 })
     moveSpeed: number = 200;
 
-    // 房间边界（横屏 roomW=1150/2-40, roomH=600/2-40）
-    @property mapBoundX: number = 535;
-    @property mapBoundY: number = 260;
+    // 房间边界：roomW=1150 半宽575-玩家半身28=547；roomH=600 半高300-28=272
+    @property mapBoundX: number = 547;
+    @property mapBoundY: number = 272;
 
     /** 门洞半宽：开着时允许从门洞走出 */
-    @property doorGapHalf: number = 36;
+    @property doorGapHalf: number = 38;
 
     private _keys = { up: false, down: false, left: false, right: false };
     private _joyDir = new Vec3();
