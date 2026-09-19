@@ -27,6 +27,7 @@ export const GameEvents = {
 
     // 道具/武器
     WEAPON_EQUIPPED:      'weapon-equipped',
+    WEAPON_CHANGED:       'weapon-changed',
     ITEM_PICKED:          'item-picked',
     COIN_COLLECTED:       'coin-collected',
 

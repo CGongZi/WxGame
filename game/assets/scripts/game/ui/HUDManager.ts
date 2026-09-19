@@ -12,10 +12,11 @@ const { ccclass, property } = _decorator;
 @ccclass('HUDManager')
 export class HUDManager extends Component {
 
-    private _fillNode: Node   = null!;
-    private _hpLabel: Label   = null!;
-    private _coinLabel: Label = null!;
-    private _killLabel: Label = null!;
+    private _fillNode: Node      = null!;
+    private _hpLabel: Label      = null!;
+    private _coinLabel: Label    = null!;
+    private _killLabel: Label    = null!;
+    private _weaponLabel: Label  = null!;
 
     private _barMaxW = 200;
     private _maxHp   = 100;
@@ -23,15 +24,17 @@ export class HUDManager extends Component {
 
     onLoad() {
         this._buildUI();
-        eventBus.on(GameEvents.PLAYER_HP_CHANGED,  this._onHp,   this);
-        eventBus.on(GameEvents.COIN_COLLECTED,      this._onCoin, this);
-        eventBus.on(GameEvents.ENEMY_KILLED,        this._onKill, this);
+        eventBus.on(GameEvents.PLAYER_HP_CHANGED,  this._onHp,     this);
+        eventBus.on(GameEvents.COIN_COLLECTED,      this._onCoin,   this);
+        eventBus.on(GameEvents.ENEMY_KILLED,        this._onKill,   this);
+        eventBus.on(GameEvents.WEAPON_CHANGED,      this._onWeapon, this);
     }
 
     onDestroy() {
-        eventBus.off(GameEvents.PLAYER_HP_CHANGED, this._onHp,   this);
-        eventBus.off(GameEvents.COIN_COLLECTED,     this._onCoin, this);
-        eventBus.off(GameEvents.ENEMY_KILLED,       this._onKill, this);
+        eventBus.off(GameEvents.PLAYER_HP_CHANGED, this._onHp,     this);
+        eventBus.off(GameEvents.COIN_COLLECTED,     this._onCoin,   this);
+        eventBus.off(GameEvents.ENEMY_KILLED,       this._onKill,   this);
+        eventBus.off(GameEvents.WEAPON_CHANGED,     this._onWeapon, this);
     }
 
     // ── 构建 UI ────────────────────────────────────────────
@@ -99,6 +102,26 @@ export class HUDManager extends Component {
         this._killLabel.color    = new Color(200, 180, 255, 255);
         killN.getComponent(UITransform)!.anchorX = 1;
         killN.getComponent(UITransform)!.anchorY = 1;
+
+        // ── 底部中央武器栏 ──
+        const weaponBar = this._makeNode('WeaponBar', 0, -H * 0.5 + 60, this.node);
+        weaponBar.getComponent(UITransform)!.setContentSize(200, 48);
+        // 背景
+        const wbSp = weaponBar.addComponent(require('cc').Sprite ?? Object);
+        const wbBg = this._makeNode('WBBg', 0, 0, weaponBar);
+        const wbG  = wbBg.addComponent(require('cc').Graphics);
+        if (wbG) {
+            wbG.fillColor = new Color(0, 0, 0, 160);
+            wbG.roundRect(-96, -22, 192, 44, 10);
+            wbG.fill();
+        }
+        // 武器文字
+        const wN = this._makeNode('WeaponName', 0, 0, weaponBar);
+        this._weaponLabel = wN.addComponent(Label);
+        this._weaponLabel.string   = '🗡️ 铁剑';
+        this._weaponLabel.fontSize = 22;
+        this._weaponLabel.color    = new Color(255, 230, 130, 255);
+        wN.getComponent(UITransform)!.setContentSize(200, 36);
     }
 
     private _makeNode(name: string, x: number, y: number, parent: Node): Node {
@@ -135,5 +158,10 @@ export class HUDManager extends Component {
     private _onKill() {
         this._killCount++;
         if (this._killLabel) this._killLabel.string = `☠️ ${this._killCount}`;
+    }
+
+    private _onWeapon(data: { name: string; emoji: string; type: string }) {
+        if (this._weaponLabel)
+            this._weaponLabel.string = `${data.emoji} ${data.name}`;
     }
 }
