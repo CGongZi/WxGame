@@ -30,7 +30,12 @@ export class PlayerController extends Component {
 
     onLoad() {
         this.node.setPosition(0, 0, 0);
-        console.log('[Player] worldPos =', this.node.worldPosition);
+
+        // ★ 强制计算边界，忽略 scene 文件里可能缓存的旧值
+        // roomW=1150 → half=575；roomH=600 → half=300；玩家半身=28
+        this.mapBoundX = 575 - 28;   // = 547
+        this.mapBoundY = 300 - 28;   // = 272
+
         this._drawKnight();
         this._emitHp();
         eventBus.on(GameEvents.WEAPON_CHANGED, this._onWeaponChanged, this);
@@ -80,17 +85,10 @@ export class PlayerController extends Component {
         const len = Math.sqrt(dx * dx + dy * dy);
         const nx = dx / len, ny = dy / len;
 
-        // Canvas 原点在中心，边界 = ±roomHalf
-        // 门开后：在门洞 X 范围内可走出南北边界（为下一关穿门做准备）
+        // Canvas 原点在中心，边界 = ±roomHalf（严格不穿墙）
         const cur  = this.node.position;
         const minX = -this.mapBoundX,  maxX = this.mapBoundX;
-        let   minY = -this.mapBoundY,  maxY = this.mapBoundY;
-
-        const inDoorX = Math.abs(cur.x) <= this.doorGapHalf;
-        if (this._doorsOpen && inDoorX) {
-            minY = -this.mapBoundY - 80;
-            maxY =  this.mapBoundY + 80;
-        }
+        const minY = -this.mapBoundY,  maxY = this.mapBoundY;
 
         const nx2  = Math.max(minX, Math.min(maxX, cur.x + nx * this.moveSpeed * dt));
         const ny2  = Math.max(minY, Math.min(maxY, cur.y + ny * this.moveSpeed * dt));
