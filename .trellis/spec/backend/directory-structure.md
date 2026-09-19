@@ -1,54 +1,53 @@
-# Directory Structure
+# 后端/数据规范 — WxGame
 
-> How backend code is organized in this project.
+## 说明
 
----
+WxGame 是**纯客户端微信小游戏**，无服务端。"后端"指：
+- 微信云开发（WeChat Cloud Base）— 用于排行榜持久化（可选）
+- 本地数据文件（JSON 配置表）
 
-## Overview
-
-<!--
-Document your project's backend directory structure here.
-
-Questions to answer:
-- How are modules/packages organized?
-- Where does business logic live?
-- Where are API endpoints defined?
-- How are utilities and helpers organized?
--->
-
-(To be filled by the team)
-
----
-
-## Directory Layout
+## 游戏数据配置表（`assets/data/`）
 
 ```
-<!-- Replace with your actual structure -->
-src/
-├── ...
-└── ...
+assets/data/
+├── weapons.json        # 所有武器定义
+├── enemies.json        # 所有怪物定义
+├── items.json          # 道具/装备定义
+├── rooms.json          # 房间模板配置
+├── shop.json           # 商店商品池
+└── gameconfig.json     # 全局平衡参数
 ```
 
----
+### 配置加载方式
 
-## Module Organization
+```typescript
+// utils/DataLoader.ts
+export class DataLoader {
+    private static _cache = new Map<string, unknown>();
 
-<!-- How should new features/modules be organized? -->
+    static async load<T>(name: string): Promise<T> {
+        if (this._cache.has(name)) return this._cache.get(name) as T;
+        const json = await resources.loadAsync(`data/${name}`, JsonAsset);
+        const data = json.json as T;
+        this._cache.set(name, data);
+        return data;
+    }
+}
+// 用法：const weapons = await DataLoader.load<WeaponData[]>('weapons');
+```
 
-(To be filled by the team)
+## 微信云开发（排行榜）
 
----
+仅在用户授权后使用，数据库集合：
 
-## Naming Conventions
+| 集合 | 字段 | 说明 |
+|------|------|------|
+| `scores` | `openid, score, floor, date` | 玩家最高分 |
 
-<!-- File and folder naming rules -->
+排行榜优先用**微信开放数据域**方案（不需要云开发）。
 
-(To be filled by the team)
+## JSON 配置规范
 
----
-
-## Examples
-
-<!-- Link to well-organized modules as examples -->
-
-(To be filled by the team)
+- 数值使用合理单位（像素、秒、点）
+- 字符串 ID 唯一，kebab-case：`"sword-basic"`
+- 新增字段必须有默认值（向后兼容）
