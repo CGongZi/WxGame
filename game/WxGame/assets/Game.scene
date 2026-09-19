@@ -225,8 +225,8 @@
     "_enabled": true,
     "__prefab": null,
     "tileSize": 48,
-    "cols": 18,
-    "rows": 30,
+    "cols": 26,
+    "rows": 14,
     "_id": "14UpoWjGJI1JV1y/qfOeMg"
   },
   {
@@ -309,8 +309,8 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "roomW": 720,
-    "roomH": 1100,
+    "roomW": 1150,
+    "roomH": 600,
     "wallThickness": 48,
     "_id": "8ciQqW6UxCZLwpIx3QG0Hf"
   },
@@ -669,7 +669,7 @@
     "_priority": 0,
     "_fov": 45,
     "_fovAxis": 0,
-    "_orthoHeight": 832.1428571428571,
+    "_orthoHeight": 375,
     "_near": 0,
     "_far": 2000,
     "_color": {

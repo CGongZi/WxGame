@@ -34,19 +34,15 @@ export class RoomBuilder extends Component {
         const hw = TW / 2, hh = TH / 2;
         const wt = this.wallThickness;
 
-        // ── 外墙底色（更深的紫黑）────────────────────────
-        g.fillColor = new Color(18, 12, 28, 255);
-        g.rect(-hw, -hh, TW, TH);
-        g.fill();
-
-        // ── 内部地面（空洞，透出 FloorRenderer）──────────
-        // 不画内部，让 Floor 层透出来即可
-
-        // ── 砖墙纹理（分块）─────────────────────────────
-        this._drawWallSection(g, -hw,       -hh,       wt,   TH);   // 左墙
-        this._drawWallSection(g,  hw - wt,  -hh,       wt,   TH);   // 右墙
-        this._drawWallSection(g, -hw + wt,  -hh,       this.roomW, wt);   // 下墙
-        this._drawWallSection(g, -hw + wt,   hh - wt,  this.roomW, wt);   // 上墙
+        // ── 只画四面墙，内部留空让 Floor 节点透出来 ─────────
+        // 左墙
+        this._drawWallSection(g, -hw,      -hh,      wt,           TH);
+        // 右墙
+        this._drawWallSection(g,  hw - wt, -hh,      wt,           TH);
+        // 下墙（不含角落）
+        this._drawWallSection(g, -hw + wt, -hh,      this.roomW,   wt);
+        // 上墙（不含角落）
+        this._drawWallSection(g, -hw + wt,  hh - wt, this.roomW,   wt);
 
         // ── 四个角落（最暗）──────────────────────────────
         const corners = [
@@ -72,9 +68,15 @@ export class RoomBuilder extends Component {
 
     /** 画一段带砖块纹理的墙 */
     private _drawWallSection(g: Graphics, x: number, y: number, w: number, h: number) {
+        // 底色（深紫黑）
+        g.fillColor = new Color(22, 14, 35, 255);
+        g.rect(x, y, w, h);
+        g.fill();
+
+        // 砖块纹理
         const brickH = 24, brickW = 48;
         const rows = Math.ceil(h / brickH);
-        const cols = Math.ceil(w / brickW);
+        const cols = Math.ceil(w / brickW) + 1;
 
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
@@ -85,16 +87,23 @@ export class RoomBuilder extends Component {
                 const bh = Math.min(brickH - 2, y + h - by - 1);
                 if (bw <= 0 || bh <= 0) continue;
 
-                // 砖块深色
-                g.fillColor = new Color(35, 24, 50, 255);
+                // 砖面（略亮）
+                g.fillColor = new Color(48, 32, 68, 255);
                 g.rect(bx + 1, by + 1, bw, bh);
                 g.fill();
 
-                // 砖块顶部高光
-                g.fillColor = new Color(55, 40, 75, 255);
+                // 顶部高光
+                g.fillColor = new Color(70, 50, 95, 200);
                 g.rect(bx + 1, by + bh - 3, bw, 2);
                 g.fill();
             }
+        }
+
+        // 门洞（上下墙各挖一个门）
+        if (Math.abs(h - this.wallThickness) < 2) {  // 是横墙
+            g.fillColor = new Color(8, 5, 16, 255);
+            g.rect(-this.doorWidth / 2, y, this.doorWidth, h);
+            g.fill();
         }
     }
 }
