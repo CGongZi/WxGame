@@ -107,9 +107,9 @@ export class JoystickController extends Component {
         // 计算归一化方向，传给玩家
         const mag = Math.sqrt(nx * nx + ny * ny);
         if (mag > 5) {
-            this.player?.setMoveDirection(new Vec2(nx / mag, ny / mag));
+            this.player?.setJoystickDir(nx / mag, ny / mag);
         } else {
-            this.player?.setMoveDirection(Vec2.ZERO);
+            this.player?.setJoystickDir(0, 0);
         }
     }
 
@@ -122,6 +122,6 @@ export class JoystickController extends Component {
         this._activeTouchId = -1;
         if (this.joystickThumb) this.joystickThumb.setPosition(0, 0, 0);
         if (this.joystickBg)    this.joystickBg.active = false;
-        this.player?.setMoveDirection(Vec2.ZERO);
+        this.player?.setJoystickDir(0, 0);
     }
 }
