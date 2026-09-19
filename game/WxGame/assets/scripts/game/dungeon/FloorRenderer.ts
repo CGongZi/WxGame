@@ -1,4 +1,4 @@
-import { _decorator, Component, Graphics, Color, UITransform, Widget } from 'cc';
+import { _decorator, Component, Graphics, Color, UITransform } from 'cc';
 
 const { ccclass, property } = _decorator;
 
@@ -21,14 +21,6 @@ export class FloorRenderer extends Component {
     private readonly C_SHINE  = new Color(255, 255, 255,  12);
 
     onLoad() {
-        // Widget：让节点自动居中对齐 Canvas
-        const widget = this.getComponent(Widget) ?? this.addComponent(Widget);
-        widget.isAlignHorizontalCenter = true;
-        widget.isAlignVerticalCenter   = true;
-        widget.horizontalCenter        = 0;
-        widget.verticalCenter          = 0;
-        widget.alignMode               = Widget.AlignMode.ON_WINDOW_RESIZE;
-
         const ui = this.getComponent(UITransform) ?? this.addComponent(UITransform);
         const W  = this.cols * this.tileSize;
         const H  = this.rows * this.tileSize;
