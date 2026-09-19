@@ -1,4 +1,4 @@
-import { _decorator, Component, Graphics, Color, UITransform, Camera } from 'cc';
+import { _decorator, Component, Graphics, Color, UITransform, Camera, Widget } from 'cc';
 
 const { ccclass, property } = _decorator;
 
@@ -24,15 +24,24 @@ export class FloorRenderer extends Component {
         // 强制居中：不管 scene 文件里设了什么位置
         this.node.setPosition(0, 0, 0);
 
-        // ★ 强制修正 Camera orthoHeight = 设计高度/2 = 375
-        // Cocos Creator 3.x 2D 默认摄像机的 orthoHeight 应等于设计分辨率高度的一半
-        const camNode = this.node.parent?.getChildByName('Camera');
-        if (camNode) {
-            const cam = camNode.getComponent(Camera);
-            if (cam) {
-                console.log('[CamFix] orthoHeight before:', cam.orthoHeight);
-                cam.orthoHeight = 375;
-                console.log('[CamFix] orthoHeight after:', cam.orthoHeight);
+        // ★ 禁用 Canvas 上的 Widget（Widget 在 ON_WINDOW_RESIZE 时会把 Canvas 位置打乱）
+        const canvasNode = this.node.parent;
+        if (canvasNode) {
+            const widget = canvasNode.getComponent(Widget);
+            if (widget) {
+                widget.enabled = false;
+                console.log('[Fix] Canvas Widget disabled');
+            }
+
+            // ★ 强制修正 Camera orthoHeight = 375（设计高度750的一半）
+            const camNode = canvasNode.getChildByName('Camera');
+            if (camNode) {
+                const cam = camNode.getComponent(Camera);
+                if (cam) {
+                    console.log('[CamFix] orthoHeight before:', cam.orthoHeight);
+                    cam.orthoHeight = 375;
+                    console.log('[CamFix] orthoHeight set to 375');
+                }
             }
         }
 
