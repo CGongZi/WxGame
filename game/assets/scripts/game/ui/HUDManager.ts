@@ -1,13 +1,12 @@
-import { _decorator, Component, Node, Label, Sprite, Color,
-         UITransform, Vec3, find } from 'cc';
+import { _decorator, Component, Node, Label, Color,
+         UITransform, Graphics, find } from 'cc';
 import { eventBus, GameEvents } from '../../core/EventBus';
 
-const { ccclass, property } = _decorator;
+const { ccclass } = _decorator;
 
 /**
- * HUDManager —— 自给自足的 HUD
- * 只需挂到 Canvas 下任意节点，自动创建血条 + 金币 + 击杀数
- * 不需要在编辑器里手动搭节点树
+ * HUDManager —— 全用 Graphics 画，不依赖任何图片资源
+ * 挂到 Canvas/HUD 节点即可
  */
 @ccclass('HUDManager')
 export class HUDManager extends Component {
@@ -19,21 +18,22 @@ export class HUDManager extends Component {
     private _weaponLabel: Label  = null!;
 
     private _barMaxW = 200;
-    private _maxHp   = 100;
-    private _hp      = 100;
+    private _killCount = 0;
+    private _totalCoins = 0;
+    private _hp    = 100;
+    private _maxHp = 100;
 
     onLoad() {
-        this._killCount = 0;   // 每次场景加载重置
+        this._killCount  = 0;
+        this._totalCoins = 0;
         this._buildUI();
-        eventBus.on(GameEvents.PLAYER_HP_CHANGED,  this._onHp,     this);
-        eventBus.on(GameEvents.COIN_COLLECTED,      this._onCoin,   this);
-        eventBus.on(GameEvents.ENEMY_KILLED,        this._onKill,   this);
-        eventBus.on(GameEvents.WEAPON_CHANGED,      this._onWeapon, this);
+        eventBus.on(GameEvents.PLAYER_HP_CHANGED, this._onHp,     this);
+        eventBus.on(GameEvents.COIN_COLLECTED,    this._onCoin,   this);
+        eventBus.on(GameEvents.ENEMY_KILLED,      this._onKill,   this);
+        eventBus.on(GameEvents.WEAPON_CHANGED,    this._onWeapon, this);
     }
 
     start() {
-        // start() 比 onLoad() 晚执行，此时 WeaponController 已初始化
-        // 主动查询当前武器并刷新显示
         this.scheduleOnce(() => {
             const wc = find('Game/Canvas/Player')?.getComponent('WeaponController') as any
                     ?? find('Canvas/Player')?.getComponent('WeaponController') as any;
@@ -49,99 +49,114 @@ export class HUDManager extends Component {
 
     onDestroy() {
         eventBus.off(GameEvents.PLAYER_HP_CHANGED, this._onHp,     this);
-        eventBus.off(GameEvents.COIN_COLLECTED,     this._onCoin,   this);
-        eventBus.off(GameEvents.ENEMY_KILLED,       this._onKill,   this);
-        eventBus.off(GameEvents.WEAPON_CHANGED,     this._onWeapon, this);
+        eventBus.off(GameEvents.COIN_COLLECTED,    this._onCoin,   this);
+        eventBus.off(GameEvents.ENEMY_KILLED,      this._onKill,   this);
+        eventBus.off(GameEvents.WEAPON_CHANGED,    this._onWeapon, this);
     }
 
-    // ── 构建 UI ────────────────────────────────────────────
+    // ── 构建 UI ───────────────────────────────────────────
 
     private _buildUI() {
-        // 横屏设计分辨率 1334×750
-        const cvs = this.node.scene?.getChildByName('Game')
-                              ?.getChildByName('Canvas');
-        const cvUI  = cvs?.getComponent(UITransform);
-        const W     = cvUI?.width  ?? 1334;
-        const H     = cvUI?.height ?? 750;
+        // Canvas 中心是 (0,0)，半宽 667，半高 375
+        const HW = 667, HH = 375;
 
-        // ── 左上角血条面板 ──
-        const panel = this._makeNode('HPPanel', W * -0.5 + 20, H * 0.5 - 60, this.node);
-        panel.getComponent(UITransform)!.setContentSize(220, 50);
+        // ── 左上角 HP 面板 ──────────────────────────────
+        const panel = this._node('HPPanel', -HW + 12, HH - 12, this.node);
+        panel.getComponent(UITransform)!.setContentSize(240, 56);
         panel.getComponent(UITransform)!.anchorX = 0;
         panel.getComponent(UITransform)!.anchorY = 1;
 
-        // 背景条（深红）
-        const bg = this._makeNode('HPBg', 100, -25, panel);
-        const bgUI = bg.getComponent(UITransform)!;
-        bgUI.setContentSize(204, 22);
-        bgUI.anchorX = 0; bgUI.anchorY = 0.5;
-        const bgSp  = bg.addComponent(Sprite);
-        bgSp.color  = new Color(80, 10, 10, 200);
+        // 面板背景（半透明黑）
+        const panelBg = this._node('PanelBg', 120, -28, panel);
+        const pbg = panelBg.addComponent(Graphics);
+        panelBg.getComponent(UITransform)!.setContentSize(240, 56);
+        pbg.fillColor = new Color(0, 0, 0, 140);
+        pbg.roundRect(-120, -28, 240, 56, 8);
+        pbg.fill();
 
-        // 填充条（红色）
-        this._fillNode = this._makeNode('HPFill', 0, 0, bg);
-        const fillUI   = this._fillNode.getComponent(UITransform)!;
-        fillUI.setContentSize(200, 18);
-        fillUI.anchorX = 0; fillUI.anchorY = 0.5;
-        const fillSp   = this._fillNode.addComponent(Sprite);
-        fillSp.color   = new Color(220, 40, 40, 255);
-        this._barMaxW  = 200;
-
-        // ❤ 图标标签
-        const heart = this._makeNode('HeartIcon', 10, -25, panel);
-        const heartL = heart.addComponent(Label);
-        heartL.string   = '❤';
+        // ❤ 图标
+        const heartN = this._node('Heart', 18, -28, panel);
+        heartN.getComponent(UITransform)!.setContentSize(24, 24);
+        heartN.getComponent(UITransform)!.anchorX = 0;
+        heartN.getComponent(UITransform)!.anchorY = 0.5;
+        const heartL = heartN.addComponent(Label);
+        heartL.string = '❤';
         heartL.fontSize = 20;
-        heartL.color    = new Color(255, 60, 60, 255);
-        heart.getComponent(UITransform)!.anchorX = 0;
+        heartL.color = new Color(255, 60, 60, 255);
+
+        // HP 进度条背景（深红）
+        const bgN = this._node('HPBg', 46, -22, panel);
+        bgN.getComponent(UITransform)!.setContentSize(this._barMaxW + 4, 18);
+        bgN.getComponent(UITransform)!.anchorX = 0;
+        bgN.getComponent(UITransform)!.anchorY = 0.5;
+        const bgG = bgN.addComponent(Graphics);
+        bgG.fillColor = new Color(80, 10, 10, 220);
+        bgG.rect(-1, -9, this._barMaxW + 4, 18);
+        bgG.fill();
+
+        // HP 填充条（亮红）— 用 Graphics 动态重绘
+        this._fillNode = this._node('HPFill', 46, -22, panel);
+        this._fillNode.getComponent(UITransform)!.setContentSize(this._barMaxW, 14);
+        this._fillNode.getComponent(UITransform)!.anchorX = 0;
+        this._fillNode.getComponent(UITransform)!.anchorY = 0.5;
+        const fillG = this._fillNode.addComponent(Graphics);
+        fillG.fillColor = new Color(220, 40, 40, 255);
+        fillG.rect(0, -7, this._barMaxW, 14);
+        fillG.fill();
 
         // HP 数字
-        const hpN = this._makeNode('HPNum', 100, -25, panel);
+        const hpN = this._node('HPNum', 148, -36, panel);
+        hpN.getComponent(UITransform)!.setContentSize(140, 18);
+        hpN.getComponent(UITransform)!.anchorX = 0;
+        hpN.getComponent(UITransform)!.anchorY = 0.5;
         this._hpLabel = hpN.addComponent(Label);
         this._hpLabel.string   = 'HP 100/100';
-        this._hpLabel.fontSize = 16;
-        this._hpLabel.color    = new Color(255, 220, 220, 255);
-        hpN.getComponent(UITransform)!.anchorX = 0;
+        this._hpLabel.fontSize = 14;
+        this._hpLabel.color    = new Color(255, 210, 210, 255);
 
-        // ── 右上角金币 / 击杀 ──
-        const coinN = this._makeNode('Coins', W * 0.5 - 20, H * 0.5 - 40, this.node);
+        // ── 右上角 金币 / 击杀 ──────────────────────────
+        const coinN = this._node('Coins', HW - 12, HH - 20, this.node);
+        coinN.getComponent(UITransform)!.setContentSize(120, 28);
+        coinN.getComponent(UITransform)!.anchorX = 1;
+        coinN.getComponent(UITransform)!.anchorY = 1;
         this._coinLabel = coinN.addComponent(Label);
         this._coinLabel.string   = '🪙 0';
         this._coinLabel.fontSize = 22;
         this._coinLabel.color    = new Color(255, 215, 0, 255);
-        coinN.getComponent(UITransform)!.anchorX = 1;
-        coinN.getComponent(UITransform)!.anchorY = 1;
 
-        const killN = this._makeNode('Kills', W * 0.5 - 20, H * 0.5 - 70, this.node);
+        const killN = this._node('Kills', HW - 12, HH - 52, this.node);
+        killN.getComponent(UITransform)!.setContentSize(120, 24);
+        killN.getComponent(UITransform)!.anchorX = 1;
+        killN.getComponent(UITransform)!.anchorY = 1;
         this._killLabel = killN.addComponent(Label);
         this._killLabel.string   = '☠️ 0';
         this._killLabel.fontSize = 18;
         this._killLabel.color    = new Color(200, 180, 255, 255);
-        killN.getComponent(UITransform)!.anchorX = 1;
-        killN.getComponent(UITransform)!.anchorY = 1;
 
-        // ── 底部中央武器栏 ──
-        const weaponBar = this._makeNode('WeaponBar', 0, -H * 0.5 + 60, this.node);
-        weaponBar.getComponent(UITransform)!.setContentSize(200, 48);
+        // ── 底部中央 武器栏 ──────────────────────────────
+        const wBar = this._node('WeaponBar', 0, -HH + 50, this.node);
+        wBar.getComponent(UITransform)!.setContentSize(220, 44);
         // 背景
-        const wbSp = weaponBar.addComponent(require('cc').Sprite ?? Object);
-        const wbBg = this._makeNode('WBBg', 0, 0, weaponBar);
-        const wbG  = wbBg.addComponent(require('cc').Graphics);
-        if (wbG) {
-            wbG.fillColor = new Color(0, 0, 0, 160);
-            wbG.roundRect(-96, -22, 192, 44, 10);
-            wbG.fill();
-        }
-        // 武器文字
-        const wN = this._makeNode('WeaponName', 0, 0, weaponBar);
+        const wbG = wBar.addComponent(Graphics);
+        wbG.fillColor = new Color(0, 0, 0, 170);
+        wbG.roundRect(-108, -20, 216, 40, 10);
+        wbG.fill();
+        wbG.strokeColor = new Color(180, 150, 60, 200);
+        wbG.lineWidth = 2;
+        wbG.roundRect(-108, -20, 216, 40, 10);
+        wbG.stroke();
+        // 武器名
+        const wN = this._node('WeaponName', 0, 0, wBar);
+        wN.getComponent(UITransform)!.setContentSize(210, 36);
         this._weaponLabel = wN.addComponent(Label);
         this._weaponLabel.string   = '🗡️ 铁剑';
         this._weaponLabel.fontSize = 22;
         this._weaponLabel.color    = new Color(255, 230, 130, 255);
-        wN.getComponent(UITransform)!.setContentSize(200, 36);
     }
 
-    private _makeNode(name: string, x: number, y: number, parent: Node): Node {
+    // ── 工具函数 ──────────────────────────────────────────
+
+    private _node(name: string, x: number, y: number, parent: Node): Node {
         const n = new Node(name);
         n.addComponent(UITransform);
         n.setParent(parent);
@@ -149,33 +164,38 @@ export class HUDManager extends Component {
         return n;
     }
 
-    // ── 事件响应 ───────────────────────────────────────────
+    // ── 事件响应 ──────────────────────────────────────────
 
     private _onHp(data: { current: number; max: number }) {
         this._hp    = data.current;
         this._maxHp = data.max;
         const ratio = data.max > 0 ? data.current / data.max : 0;
+        const w     = Math.max(0, this._barMaxW * ratio);
 
-        const fillUI = this._fillNode?.getComponent(UITransform);
-        if (fillUI) fillUI.width = Math.max(0, this._barMaxW * ratio);
+        // 重新绘制填充条
+        const fillG = this._fillNode?.getComponent(Graphics);
+        if (fillG) {
+            fillG.clear();
+            fillG.fillColor = ratio < 0.3
+                ? new Color(255, 110, 0, 255)   // 低血橙色
+                : new Color(220, 40,  40, 255);
+            fillG.rect(0, -7, w, 14);
+            fillG.fill();
+        }
 
-        const fillSp = this._fillNode?.getComponent(Sprite);
-        if (fillSp) fillSp.color = ratio < 0.3
-            ? new Color(255, 110, 0, 255)   // 低血 → 橙色
-            : new Color(220, 40,  40, 255);
+        const ui = this._fillNode?.getComponent(UITransform);
+        if (ui) ui.width = w;
 
-        if (this._hpLabel) this._hpLabel.string = `HP ${data.current}/${data.max}`;
+        if (this._hpLabel)
+            this._hpLabel.string = `HP ${data.current}/${data.max}`;
     }
 
-    private _totalCoins = 0;
     private _onCoin(data: { total?: number; amount?: number }) {
-        // 兼容两种事件格式
-        if (data.total !== undefined)  this._totalCoins  = data.total;
+        if (data.total  !== undefined) this._totalCoins  = data.total;
         if (data.amount !== undefined) this._totalCoins += data.amount;
         if (this._coinLabel) this._coinLabel.string = `🪙 ${this._totalCoins}`;
     }
 
-    private _killCount = 0;
     private _onKill() {
         this._killCount++;
         if (this._killLabel) this._killLabel.string = `☠️ ${this._killCount}`;
