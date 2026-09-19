@@ -1,4 +1,4 @@
-import { _decorator, Component, Vec2, Vec3, RigidBody2D, Animation, Node } from 'cc';
+import { _decorator, Component, Vec2, Vec3, Node } from 'cc';
 import { GameConfig } from '../../core/GameConfig';
 import { GameManager } from '../../core/GameManager';
 import { eventBus, GameEvents } from '../../core/EventBus';
@@ -6,21 +6,17 @@ import { eventBus, GameEvents } from '../../core/EventBus';
 const { ccclass, property } = _decorator;
 
 /**
- * 玩家控制器
- * 处理：移动、动画状态、受击
+ * 玩家控制器（位置直接移动，兼容 UI Canvas 下的节点）
  */
 @ccclass('PlayerController')
 export class PlayerController extends Component {
 
     @property(Node)
-    spriteNode: Node = null!;   // 角色精灵节点（用于翻转方向）
+    spriteNode: Node = null!;
 
     @property(Node)
-    weaponHolder: Node = null!; // 武器挂点
+    weaponHolder: Node = null!;
 
-    // ── 私有状态 ──
-    private _rb: RigidBody2D = null!;
-    private _anim: Animation = null!;
     private _moveDir: Vec2 = new Vec2(0, 0);
     private _isInvincible: boolean = false;
     private _invincibleTimer: number = 0;
@@ -28,10 +24,6 @@ export class PlayerController extends Component {
     private _speed: number = GameConfig.PLAYER_BASE_SPEED;
 
     onLoad() {
-        this._rb = this.getComponent(RigidBody2D)!;
-        this._anim = this.getComponentInChildren(Animation)!;
-
-        // 监听事件
         eventBus.on(GameEvents.PLAYER_REVIVED, this._onRevived, this);
     }
 
@@ -42,18 +34,22 @@ export class PlayerController extends Component {
     update(dt: number) {
         if (this._isDead) return;
 
-        // 移动
-        if (this._rb && !this._moveDir.equals(Vec2.ZERO)) {
-            const vel = new Vec2(
-                this._moveDir.x * this._speed,
-                this._moveDir.y * this._speed,
+        // ── 直接移动节点位置 ──
+        if (!this._moveDir.equals(Vec2.ZERO)) {
+            const pos = this.node.position;
+            const nx = pos.x + this._moveDir.x * this._speed * dt;
+            const ny = pos.y + this._moveDir.y * this._speed * dt;
+
+            // 限制在画布范围内
+            const halfW = GameConfig.CANVAS_WIDTH  * 0.5 - 20;
+            const halfH = GameConfig.CANVAS_HEIGHT * 0.5 - 20;
+            this.node.setPosition(
+                Math.max(-halfW, Math.min(halfW, nx)),
+                Math.max(-halfH, Math.min(halfH, ny)),
+                0,
             );
-            this._rb.linearVelocity = vel;
+
             this._updateFacing();
-            this._playAnim('walk');
-        } else if (this._rb) {
-            this._rb.linearVelocity = Vec2.ZERO;
-            this._playAnim('idle');
         }
 
         // 无敌帧计时
@@ -65,33 +61,32 @@ export class PlayerController extends Component {
         }
     }
 
-    /** 由 JoystickController 调用 */
+    /** 由 JoystickController 调用，传入归一化方向 */
     setMoveDirection(dir: Vec2) {
         this._moveDir.set(dir);
     }
 
-    /** 受到伤害（由碰撞/子弹触发） */
+    /** 受到伤害 */
     takeDamage(amount: number) {
         if (this._isInvincible || this._isDead) return;
 
-        const died = GameManager.instance.takeDamage(amount);
-        this._startInvincible();
-
-        if (died) {
-            this._isDead = true;
-            this._playAnim('die');
-            this._rb.linearVelocity = Vec2.ZERO;
-        } else {
-            this._playAnim('hit');
+        // 如果 GameManager 还未初始化（编辑器预览），跳过
+        try {
+            const died = GameManager.instance.takeDamage(amount);
+            this._startInvincible();
+            if (died) {
+                this._isDead = true;
+            }
+        } catch (e) {
+            console.warn('[PlayerController] GameManager not ready', e);
         }
     }
 
-    /** 回血（商店/道具） */
     heal(amount: number) {
-        GameManager.instance.heal(amount);
+        try {
+            GameManager.instance.heal(amount);
+        } catch {}
     }
-
-    // ── 私有 ──
 
     private _startInvincible() {
         this._isInvincible = true;
@@ -99,26 +94,17 @@ export class PlayerController extends Component {
     }
 
     private _updateFacing() {
-        if (!this.spriteNode) return;
-        const scale = this.spriteNode.scale;
+        const target = this.spriteNode ?? this.node;
+        const scale = target.scale;
         if (this._moveDir.x < 0) {
-            this.spriteNode.setScale(-Math.abs(scale.x), scale.y, scale.z);
+            target.setScale(-Math.abs(scale.x), scale.y, scale.z);
         } else if (this._moveDir.x > 0) {
-            this.spriteNode.setScale(Math.abs(scale.x), scale.y, scale.z);
-        }
-    }
-
-    private _playAnim(name: string) {
-        if (!this._anim) return;
-        const state = this._anim.getState(name);
-        if (state && !state.isPlaying) {
-            this._anim.play(name);
+            target.setScale(Math.abs(scale.x), scale.y, scale.z);
         }
     }
 
     private _onRevived() {
         this._isDead = false;
         this._startInvincible();
-        this._playAnim('idle');
     }
 }
