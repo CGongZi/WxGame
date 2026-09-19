@@ -1,0 +1,70 @@
+[
+  {
+    "id": "sword-basic",
+    "name": "铁剑",
+    "type": "melee",
+    "rarity": "common",
+    "damage": 25,
+    "attackSpeed": 0.6,
+    "range": 60,
+    "knockback": 150,
+    "prefabPath": "prefabs/weapons/SwordBasic",
+    "iconPath": "textures/weapons/icon_sword_basic",
+    "description": "一把普通的铁剑，挥砍范围适中。"
+  },
+  {
+    "id": "sword-fire",
+    "name": "烈焰剑",
+    "type": "melee",
+    "rarity": "rare",
+    "damage": 45,
+    "attackSpeed": 0.7,
+    "range": 65,
+    "knockback": 180,
+    "prefabPath": "prefabs/weapons/SwordFire",
+    "iconPath": "textures/weapons/icon_sword_fire",
+    "description": "附有火焰魔法，攻击时燃烧敌人。"
+  },
+  {
+    "id": "bow-basic",
+    "name": "木弓",
+    "type": "ranged",
+    "rarity": "common",
+    "damage": 20,
+    "attackSpeed": 0.8,
+    "range": 0,
+    "bulletSpeed": 400,
+    "knockback": 80,
+    "prefabPath": "prefabs/weapons/BowBasic",
+    "iconPath": "textures/weapons/icon_bow_basic",
+    "description": "简单的木弓，射程较远。"
+  },
+  {
+    "id": "bow-ice",
+    "name": "冰霜弓",
+    "type": "ranged",
+    "rarity": "rare",
+    "damage": 35,
+    "attackSpeed": 1.0,
+    "range": 0,
+    "bulletSpeed": 350,
+    "knockback": 60,
+    "prefabPath": "prefabs/weapons/BowIce",
+    "iconPath": "textures/weapons/icon_bow_ice",
+    "description": "冰属性箭矢，命中后减速敌人。"
+  },
+  {
+    "id": "staff-thunder",
+    "name": "雷鸣法杖",
+    "type": "magic",
+    "rarity": "epic",
+    "damage": 60,
+    "attackSpeed": 1.2,
+    "range": 0,
+    "bulletSpeed": 500,
+    "knockback": 250,
+    "prefabPath": "prefabs/weapons/StaffThunder",
+    "iconPath": "textures/weapons/icon_staff_thunder",
+    "description": "史诗级法杖，释放闪电击晕敌人。"
+  }
+]

@@ -1,0 +1,108 @@
+[
+  {
+    "id": "slime-green",
+    "displayName": "绿史莱姆",
+    "type": "melee",
+    "hp": 30,
+    "damage": 8,
+    "speed": 60,
+    "attackRange": 40,
+    "detectionRange": 200,
+    "dropTable": [
+      { "itemId": "coin", "weight": 60 },
+      { "itemId": "potion-small", "weight": 20 },
+      { "itemId": "sword-basic", "weight": 5 }
+    ],
+    "coinDrop": { "min": 1, "max": 3, "chance": 0.7 },
+    "prefabPath": "prefabs/enemies/SlimeGreen",
+    "expValue": 5
+  },
+  {
+    "id": "slime-red",
+    "displayName": "红史莱姆",
+    "type": "melee",
+    "hp": 50,
+    "damage": 14,
+    "speed": 80,
+    "attackRange": 40,
+    "detectionRange": 220,
+    "dropTable": [
+      { "itemId": "coin", "weight": 50 },
+      { "itemId": "potion-small", "weight": 25 },
+      { "itemId": "bow-basic", "weight": 8 }
+    ],
+    "coinDrop": { "min": 2, "max": 5, "chance": 0.7 },
+    "prefabPath": "prefabs/enemies/SlimeRed",
+    "expValue": 10
+  },
+  {
+    "id": "bat-gray",
+    "displayName": "灰蝙蝠",
+    "type": "melee",
+    "hp": 20,
+    "damage": 6,
+    "speed": 110,
+    "attackRange": 35,
+    "detectionRange": 250,
+    "dropTable": [
+      { "itemId": "coin", "weight": 70 }
+    ],
+    "coinDrop": { "min": 1, "max": 2, "chance": 0.5 },
+    "prefabPath": "prefabs/enemies/BatGray",
+    "expValue": 4
+  },
+  {
+    "id": "skeleton",
+    "displayName": "骷髅战士",
+    "type": "melee",
+    "hp": 70,
+    "damage": 18,
+    "speed": 65,
+    "attackRange": 50,
+    "detectionRange": 230,
+    "dropTable": [
+      { "itemId": "coin", "weight": 40 },
+      { "itemId": "sword-fire", "weight": 5 },
+      { "itemId": "potion-medium", "weight": 15 }
+    ],
+    "coinDrop": { "min": 3, "max": 7, "chance": 0.8 },
+    "prefabPath": "prefabs/enemies/Skeleton",
+    "expValue": 15
+  },
+  {
+    "id": "archer-goblin",
+    "displayName": "弓箭地精",
+    "type": "ranged",
+    "hp": 40,
+    "damage": 12,
+    "speed": 50,
+    "attackRange": 180,
+    "detectionRange": 280,
+    "dropTable": [
+      { "itemId": "coin", "weight": 50 },
+      { "itemId": "bow-basic", "weight": 10 },
+      { "itemId": "bow-ice", "weight": 3 }
+    ],
+    "coinDrop": { "min": 2, "max": 5, "chance": 0.75 },
+    "prefabPath": "prefabs/enemies/ArcherGoblin",
+    "expValue": 12
+  },
+  {
+    "id": "boss-dungeon-lord",
+    "displayName": "地牢领主",
+    "type": "boss",
+    "hp": 500,
+    "damage": 30,
+    "speed": 70,
+    "attackRange": 80,
+    "detectionRange": 400,
+    "dropTable": [
+      { "itemId": "staff-thunder", "weight": 40 },
+      { "itemId": "sword-fire", "weight": 40 },
+      { "itemId": "bow-ice", "weight": 20 }
+    ],
+    "coinDrop": { "min": 20, "max": 40, "chance": 1.0 },
+    "prefabPath": "prefabs/enemies/BossDungeonLord",
+    "expValue": 200
+  }
+]
