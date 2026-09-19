@@ -1,4 +1,4 @@
-import { _decorator, Component, Graphics, Color, UITransform } from 'cc';
+import { _decorator, Component, Graphics, Color, UITransform, Camera } from 'cc';
 
 const { ccclass, property } = _decorator;
 
@@ -23,6 +23,18 @@ export class FloorRenderer extends Component {
     onLoad() {
         // 强制居中：不管 scene 文件里设了什么位置
         this.node.setPosition(0, 0, 0);
+
+        // ★ 强制修正 Camera orthoHeight = 设计高度/2 = 375
+        // Cocos Creator 3.x 2D 默认摄像机的 orthoHeight 应等于设计分辨率高度的一半
+        const camNode = this.node.parent?.getChildByName('Camera');
+        if (camNode) {
+            const cam = camNode.getComponent(Camera);
+            if (cam) {
+                console.log('[CamFix] orthoHeight before:', cam.orthoHeight);
+                cam.orthoHeight = 375;
+                console.log('[CamFix] orthoHeight after:', cam.orthoHeight);
+            }
+        }
 
         const ui = this.getComponent(UITransform) ?? this.addComponent(UITransform);
         const W  = this.cols * this.tileSize;
