@@ -148,13 +148,18 @@ export class SlimeEnemy extends Component {
     private _die() {
         this._state = 'dead';
         if (this._sprite)   this._sprite.color = this.C_DEAD;
-        if (this._graphics) this.node.setScale(0.5, 0.5, 1);  // 死亡缩小
-        // GameManager.onEnemyKilled 内部已经会 emit ENEMY_KILLED，不要重复 emit
-        try { GameManager.instance.onEnemyKilled('slime-green'); } catch {
-            // 编辑器没有 GameManager 时直接 emit
-            eventBus.emit(GameEvents.ENEMY_KILLED, { enemyId: 'slime-green' });
-        }
-        try { GameManager.instance.addCoins(Math.ceil(Math.random() * 3)); } catch {}
+        if (this._graphics) this.node.setScale(0.5, 0.5, 1);
+
+        const coins = Math.ceil(Math.random() * 3);
+
+        // 直接发事件（不依赖 GameManager，HUD 一定能收到）
+        eventBus.emit(GameEvents.ENEMY_KILLED,  { enemyId: 'slime-green', coins });
+        eventBus.emit(GameEvents.COIN_COLLECTED, { amount: coins });
+
+        // 同步 GameManager（有则更新，没有静默忽略）
+        try { GameManager.instance.onEnemyKilled('slime-green'); } catch {}
+        try { GameManager.instance.addCoins(coins); }              catch {}
+
         this.scheduleOnce(() => this.node.destroy(), 0.5);
     }
 

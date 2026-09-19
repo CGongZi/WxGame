@@ -142,14 +142,27 @@ export class WeaponController extends Component {
     }
 
     private _doMelee() {
-        const pos  = this.node.position;
-        const hits = EnemyRegistry.getInRange(pos.x, pos.y, this._weapon.range);
+        const pos = this.node.position;
 
-        console.log(`[${this._weapon.name}] 近战，范围内: ${hits.length}`);
+        // 获取攻击方向（鼠标方向优先，否则朝右）
+        const aimDir = this._mouseDir.clone();
+        if (aimDir.length() < 0.1) aimDir.set(1, 0, 0);
+
+        // 扇形检测：范围内 + 方向夹角 < 110°
+        const allInRange = EnemyRegistry.getInRange(pos.x, pos.y, this._weapon.range);
+        const hits = allInRange.filter(enemy => {
+            const ex = enemy.node.position.x - pos.x;
+            const ey = enemy.node.position.y - pos.y;
+            const len = Math.sqrt(ex * ex + ey * ey);
+            if (len < 1) return true;
+            const dot = (ex / len) * aimDir.x + (ey / len) * aimDir.y;
+            return dot > Math.cos(Math.PI * 0.6);  // 120° 扇形
+        });
+
+        console.log(`[${this._weapon.name}] 近战 方向(${aimDir.x.toFixed(1)},${aimDir.y.toFixed(1)}) 命中: ${hits.length}`);
         hits.slice(0, 3).forEach(e => e.takeDamage(this._weapon.damage));
 
-        // 攻击动画：剑气弧线
-        this._swingEffect();
+        this._swingEffect(aimDir.x, aimDir.y);
     }
 
     private _doRanged() {
@@ -178,27 +191,33 @@ export class WeaponController extends Component {
 
     // ── 视觉特效 ──────────────────────────────────────────────
 
-    private _swingEffect() {
-        // 玩家缩放弹跳
+    private _swingEffect(dirX = 1, dirY = 0) {
         tween(this.node)
             .to(0.07, { scale: new Vec3(1.3, 1.3, 1) })
             .to(0.10, { scale: new Vec3(1.0, 1.0, 1) })
             .start();
 
-        // 画一个短暂弧线 —— 在 BulletLayer 生成临时节点
+        // 在攻击方向画剑气弧线
         const arc = new Node('SwingArc');
         arc.setParent(this.bulletLayer);
         arc.setPosition(this.node.position);
-        const g = arc.addComponent(Graphics);
         arc.addComponent(UITransform).setContentSize(160, 160);
 
-        g.lineWidth  = 6;
-        g.strokeColor = new Color(200, 220, 255, 200);
-        g.arc(0, 0, 70, -0.5, 1.2);
+        const g = arc.addComponent(Graphics);
+        // 根据方向旋转弧线角度
+        const baseAngle = Math.atan2(dirY, dirX);
+        g.lineWidth   = 7;
+        g.strokeColor = new Color(200, 230, 255, 220);
+        g.arc(0, 0, 72, baseAngle - 0.9, baseAngle + 0.9);
         g.stroke();
 
-        // 0.15 秒后删除
-        setTimeout(() => { if (arc.isValid) arc.destroy(); }, 150);
+        // 剑气白色内层
+        g.lineWidth   = 3;
+        g.strokeColor = new Color(255, 255, 255, 160);
+        g.arc(0, 0, 56, baseAngle - 0.7, baseAngle + 0.7);
+        g.stroke();
+
+        this.scheduleOnce(() => { if (arc.isValid) arc.destroy(); }, 0.15);
     }
 
     private _shootEffect() {

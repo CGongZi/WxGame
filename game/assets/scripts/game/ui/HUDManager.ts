@@ -167,8 +167,12 @@ export class HUDManager extends Component {
         if (this._hpLabel) this._hpLabel.string = `HP ${data.current}/${data.max}`;
     }
 
-    private _onCoin(data: { total: number }) {
-        if (this._coinLabel) this._coinLabel.string = `🪙 ${data.total}`;
+    private _totalCoins = 0;
+    private _onCoin(data: { total?: number; amount?: number }) {
+        // 兼容两种事件格式
+        if (data.total !== undefined)  this._totalCoins  = data.total;
+        if (data.amount !== undefined) this._totalCoins += data.amount;
+        if (this._coinLabel) this._coinLabel.string = `🪙 ${this._totalCoins}`;
     }
 
     private _killCount = 0;
