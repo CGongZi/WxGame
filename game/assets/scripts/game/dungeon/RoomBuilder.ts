@@ -1,81 +1,148 @@
-import { _decorator, Component, Node, Graphics, UITransform, Color } from 'cc';
+import { _decorator, Component, Graphics, UITransform, Color } from 'cc';
+import { RoomController } from './RoomController';
 
 const { ccclass, property } = _decorator;
 
 /**
- * RoomBuilder
- * 画一个带厚墙的地牢房间
- * 挂到 Canvas 下的 Room 节点（放在 Floor 上面、Player 下面）
+ * RoomBuilder —— 画带厚墙的地牢房间 + 可开关的门
  */
 @ccclass('RoomBuilder')
 export class RoomBuilder extends Component {
 
     @property({ tooltip: '房间内部宽度（像素）' })
-    roomW: number = 1150;   // 横屏 1334 - 墙×2
+    roomW: number = 1150;
 
     @property({ tooltip: '房间内部高度（像素）' })
-    roomH: number = 600;    // 横屏 750 - 墙×2 - HUD
+    roomH: number = 600;
 
     @property({ tooltip: '墙厚（像素）' })
     wallThickness: number = 48;
 
+    @property({ tooltip: '门洞宽度' })
+    doorWidth: number = 80;
+
+    private _doorsOpen = false;
+    private _g: Graphics | null = null;
+
     onLoad() {
-        // 强制居中：不管 scene 文件里设了什么位置
         this.node.setPosition(0, 0, 0);
-        this._build();
+
+        // 自动挂 RoomController，免手动加组件
+        if (!this.getComponent(RoomController)) {
+            this.addComponent(RoomController);
+        }
+
+        this._rebuild();
     }
 
-    private _build() {
+    /** 开/关门：重绘门洞区域 */
+    setDoorsOpen(open: boolean) {
+        this._doorsOpen = open;
+        this._rebuild();
+    }
+
+    get doorsOpen() { return this._doorsOpen; }
+
+    private _rebuild() {
         const ui = this.getComponent(UITransform) ?? this.addComponent(UITransform);
         const TW  = this.roomW + this.wallThickness * 2;
         const TH  = this.roomH + this.wallThickness * 2;
         ui.setContentSize(TW, TH);
 
-        const g = this.getComponent(Graphics) ?? this.addComponent(Graphics);
+        this._g = this.getComponent(Graphics) ?? this.addComponent(Graphics);
+        this._g.clear();
 
         const hw = TW / 2, hh = TH / 2;
         const wt = this.wallThickness;
+        const g  = this._g;
 
-        // ── 只画四面墙，内部留空让 Floor 节点透出来 ─────────
-        // 左墙
-        this._drawWallSection(g, -hw,      -hh,      wt,           TH);
-        // 右墙
-        this._drawWallSection(g,  hw - wt, -hh,      wt,           TH);
-        // 下墙（不含角落）
-        this._drawWallSection(g, -hw + wt, -hh,      this.roomW,   wt);
-        // 上墙（不含角落）
-        this._drawWallSection(g, -hw + wt,  hh - wt, this.roomW,   wt);
+        // 四面墙（横墙中间预留门洞，不在这里画满）
+        this._drawWallSection(g, -hw,      -hh,      wt,           TH);           // 左
+        this._drawWallSection(g,  hw - wt, -hh,      wt,           TH);           // 右
+        this._drawWallWithDoorGap(g, -hw + wt, -hh,      this.roomW, wt, false);  // 下
+        this._drawWallWithDoorGap(g, -hw + wt,  hh - wt, this.roomW, wt, true);   // 上
 
-        // ── 四个角落（最暗）──────────────────────────────
-        const corners = [
-            [-hw, -hh], [hw - wt, -hh],
-            [-hw,  hh - wt], [hw - wt, hh - wt],
-        ];
+        // 四角
         g.fillColor = new Color(12, 8, 20, 255);
-        corners.forEach(([cx, cy]) => {
-            g.rect(cx, cy, wt, wt);
-            g.fill();
-        });
+        [[-hw, -hh], [hw - wt, -hh], [-hw, hh - wt], [hw - wt, hh - wt]]
+            .forEach(([cx, cy]) => { g.rect(cx as number, cy as number, wt, wt); g.fill(); });
 
-        // ── 门洞（上下各一个）────────────────────────────
-        const doorW = 80;
-        // 下门
-        g.fillColor = new Color(10, 6, 18, 255);
-        g.rect(-doorW / 2, -hh, doorW, wt);
-        g.fill();
-        // 上门
-        g.rect(-doorW / 2, hh - wt, doorW, wt);
-        g.fill();
+        // 门状态
+        this._drawDoors(g, hw, hh, wt);
     }
 
-    /** 画一段带砖块纹理的墙 */
+    /** 横墙：左右两段，中间留门洞 */
+    private _drawWallWithDoorGap(
+        g: Graphics, x: number, y: number, w: number, h: number, _isTop: boolean
+    ) {
+        const dw = this.doorWidth;
+        const leftW  = (w - dw) / 2;
+        const rightX = x + leftW + dw;
+        this._drawWallSection(g, x, y, leftW, h);
+        this._drawWallSection(g, rightX, y, leftW, h);
+    }
+
+    private _drawDoors(g: Graphics, hw: number, hh: number, wt: number) {
+        const dw = this.doorWidth;
+        const positions: Array<{ x: number; y: number }> = [
+            { x: -dw / 2, y: -hh },      // 南门
+            { x: -dw / 2, y:  hh - wt }, // 北门
+        ];
+
+        for (const p of positions) {
+            if (this._doorsOpen) {
+                // 开着的门：深色门洞 + 金色描边
+                g.fillColor = new Color(8, 5, 16, 255);
+                g.rect(p.x, p.y, dw, wt);
+                g.fill();
+
+                g.strokeColor = new Color(255, 200, 60, 220);
+                g.lineWidth = 3;
+                g.rect(p.x + 2, p.y + 2, dw - 4, wt - 4);
+                g.stroke();
+
+                // 两侧门柱高光
+                g.fillColor = new Color(255, 210, 80, 180);
+                g.rect(p.x, p.y, 4, wt);
+                g.fill();
+                g.rect(p.x + dw - 4, p.y, 4, wt);
+                g.fill();
+            } else {
+                // 封死的门：铁栅栏
+                g.fillColor = new Color(28, 18, 40, 255);
+                g.rect(p.x, p.y, dw, wt);
+                g.fill();
+
+                // 横栏
+                g.fillColor = new Color(90, 70, 110, 255);
+                for (let i = 0; i < 3; i++) {
+                    const by = p.y + 8 + i * 14;
+                    g.rect(p.x + 4, by, dw - 8, 4);
+                    g.fill();
+                }
+                // 竖栏
+                g.fillColor = new Color(70, 55, 90, 255);
+                for (let i = 0; i < 4; i++) {
+                    const bx = p.x + 12 + i * 16;
+                    g.rect(bx, p.y + 4, 4, wt - 8);
+                    g.fill();
+                }
+
+                // 锁标记
+                g.fillColor = new Color(200, 160, 40, 255);
+                g.circle(0, p.y + wt / 2, 6);
+                g.fill();
+            }
+        }
+    }
+
     private _drawWallSection(g: Graphics, x: number, y: number, w: number, h: number) {
-        // 底色（深紫黑）
+        if (w <= 0 || h <= 0) return;
+
         g.fillColor = new Color(22, 14, 35, 255);
         g.rect(x, y, w, h);
         g.fill();
 
-        // 砖块纹理
         const brickH = 24, brickW = 48;
         const rows = Math.ceil(h / brickH);
         const cols = Math.ceil(w / brickW) + 1;
@@ -89,24 +156,14 @@ export class RoomBuilder extends Component {
                 const bh = Math.min(brickH - 2, y + h - by - 1);
                 if (bw <= 0 || bh <= 0) continue;
 
-                // 砖面（略亮）
                 g.fillColor = new Color(48, 32, 68, 255);
                 g.rect(bx + 1, by + 1, bw, bh);
                 g.fill();
 
-                // 顶部高光
                 g.fillColor = new Color(70, 50, 95, 200);
                 g.rect(bx + 1, by + bh - 3, bw, 2);
                 g.fill();
             }
-        }
-
-        // 门洞（上下墙各挖一个门）
-        if (Math.abs(h - this.wallThickness) < 2) {  // 是横墙
-            const dw = 80;
-            g.fillColor = new Color(8, 5, 16, 255);
-            g.rect(-dw / 2, y, dw, h);
-            g.fill();
         }
     }
 }

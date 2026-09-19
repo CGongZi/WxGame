@@ -1,6 +1,7 @@
 import { _decorator, Component, Node, Label, Color,
          UITransform, Graphics, find } from 'cc';
 import { eventBus, GameEvents } from '../../core/EventBus';
+import { EnemyRegistry } from '../enemy/EnemyRegistry';
 
 const { ccclass } = _decorator;
 
@@ -16,6 +17,8 @@ export class HUDManager extends Component {
     private _coinLabel: Label    = null!;
     private _killLabel: Label    = null!;
     private _weaponLabel: Label  = null!;
+    private _tipLabel: Label     = null!;
+    private _remainLabel: Label  = null!;
 
     private _barMaxW = 200;
     private _killCount = 0;
@@ -31,6 +34,7 @@ export class HUDManager extends Component {
         eventBus.on(GameEvents.COIN_COLLECTED,    this._onCoin,   this);
         eventBus.on(GameEvents.ENEMY_KILLED,      this._onKill,   this);
         eventBus.on(GameEvents.WEAPON_CHANGED,    this._onWeapon, this);
+        eventBus.on(GameEvents.ROOM_CLEARED,      this._onRoomCleared, this);
     }
 
     start() {
@@ -52,6 +56,7 @@ export class HUDManager extends Component {
         eventBus.off(GameEvents.COIN_COLLECTED,    this._onCoin,   this);
         eventBus.off(GameEvents.ENEMY_KILLED,      this._onKill,   this);
         eventBus.off(GameEvents.WEAPON_CHANGED,    this._onWeapon, this);
+        eventBus.off(GameEvents.ROOM_CLEARED,      this._onRoomCleared, this);
     }
 
     // ── 构建 UI ───────────────────────────────────────────
@@ -152,6 +157,23 @@ export class HUDManager extends Component {
         this._weaponLabel.string   = '🗡️ 铁剑';
         this._weaponLabel.fontSize = 22;
         this._weaponLabel.color    = new Color(255, 230, 130, 255);
+
+        // ── 中央提示（清房成功等）──────────────────────────
+        const tipN = this._node('Tip', 0, 80, this.node);
+        tipN.getComponent(UITransform)!.setContentSize(400, 40);
+        this._tipLabel = tipN.addComponent(Label);
+        this._tipLabel.string   = '';
+        this._tipLabel.fontSize = 28;
+        this._tipLabel.color    = new Color(255, 220, 80, 255);
+        tipN.active = false;
+
+        // ── 剩余敌人 ──────────────────────────────────────
+        const remN = this._node('Remain', 0, HH - 24, this.node);
+        remN.getComponent(UITransform)!.setContentSize(200, 28);
+        this._remainLabel = remN.addComponent(Label);
+        this._remainLabel.string   = '';
+        this._remainLabel.fontSize = 18;
+        this._remainLabel.color    = new Color(200, 180, 220, 255);
     }
 
     // ── 工具函数 ──────────────────────────────────────────
@@ -199,10 +221,37 @@ export class HUDManager extends Component {
     private _onKill() {
         this._killCount++;
         if (this._killLabel) this._killLabel.string = `☠️ ${this._killCount}`;
+        this._refreshRemain();
     }
 
     private _onWeapon(data: { name: string; emoji: string; type: string }) {
         if (this._weaponLabel)
             this._weaponLabel.string = `${data.emoji} ${data.name}`;
     }
+
+    private _onRoomCleared() {
+        this._showTip('🚪 房间已清空！大门开启');
+        if (this._remainLabel) this._remainLabel.string = '✅ 已清空';
+    }
+
+    private _refreshRemain() {
+        this.scheduleOnce(() => {
+            const n = EnemyRegistry.aliveCount;
+            if (this._remainLabel) {
+                this._remainLabel.string = n > 0 ? `👾 剩余 ${n}` : '';
+            }
+        }, 0);
+    }
+
+    private _showTip(text: string) {
+        if (!this._tipLabel) return;
+        this._tipLabel.string = text;
+        this._tipLabel.node.active = true;
+        this.unschedule(this._hideTip);
+        this.scheduleOnce(this._hideTip, 2.5);
+    }
+
+    private _hideTip = () => {
+        if (this._tipLabel) this._tipLabel.node.active = false;
+    };
 }

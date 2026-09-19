@@ -34,4 +34,9 @@ export class EnemyRegistry {
     }
 
     static get count() { return EnemyRegistry._enemies.length; }
+
+    /** 仍存活的敌人数量（不含已死亡但尚未 destroy 的） */
+    static get aliveCount(): number {
+        return EnemyRegistry._enemies.filter(e => e?.isValid && !e.isDead).length;
+    }
 }

@@ -1,6 +1,7 @@
 import { _decorator, Component, Node, Vec3, input, Input,
-         EventKeyboard, KeyCode, UITransform, Graphics, Color, Label } from 'cc';
+         EventKeyboard, KeyCode, UITransform, Graphics, Color, Label, find } from 'cc';
 import { eventBus, GameEvents } from '../../core/EventBus';
+import { RoomController } from '../dungeon/RoomController';
 
 const { ccclass, property } = _decorator;
 
@@ -14,6 +15,9 @@ export class PlayerController extends Component {
     @property mapBoundX: number = 535;
     @property mapBoundY: number = 260;
 
+    /** 门洞半宽：开着时允许从门洞走出 */
+    @property doorGapHalf: number = 36;
+
     private _keys = { up: false, down: false, left: false, right: false };
     private _joyDir = new Vec3();
 
@@ -22,18 +26,31 @@ export class PlayerController extends Component {
     private _invincibleTimer = 0;
     private _weaponEmoji = '🗡️';
     private _weaponIconLabel: Label | null = null;
+    private _doorsOpen = false;
 
     onLoad() {
-        // 强制出生在中心
         this.node.setPosition(0, 0, 0);
         console.log('[Player] worldPos =', this.node.worldPosition);
         this._drawKnight();
         this._emitHp();
         eventBus.on(GameEvents.WEAPON_CHANGED, this._onWeaponChanged, this);
+        eventBus.on(GameEvents.ROOM_CLEARED,   this._onRoomCleared, this);
     }
 
     onDestroy() {
         eventBus.off(GameEvents.WEAPON_CHANGED, this._onWeaponChanged, this);
+        eventBus.off(GameEvents.ROOM_CLEARED,   this._onRoomCleared, this);
+    }
+
+    start() {
+        // 同步已有 Room 状态（防事件早于监听）
+        const rc = find('Game/Canvas/Room')?.getComponent(RoomController)
+                ?? find('Canvas/Room')?.getComponent(RoomController);
+        if (rc?.isCleared) this._doorsOpen = true;
+    }
+
+    private _onRoomCleared() {
+        this._doorsOpen = true;
     }
 
     onEnable() {
@@ -64,9 +81,17 @@ export class PlayerController extends Component {
         const nx = dx / len, ny = dy / len;
 
         // Canvas 原点在中心，边界 = ±roomHalf
+        // 门开后：在门洞 X 范围内可走出南北边界（为下一关穿门做准备）
         const cur  = this.node.position;
         const minX = -this.mapBoundX,  maxX = this.mapBoundX;
-        const minY = -this.mapBoundY,  maxY = this.mapBoundY;
+        let   minY = -this.mapBoundY,  maxY = this.mapBoundY;
+
+        const inDoorX = Math.abs(cur.x) <= this.doorGapHalf;
+        if (this._doorsOpen && inDoorX) {
+            minY = -this.mapBoundY - 80;
+            maxY =  this.mapBoundY + 80;
+        }
+
         const nx2  = Math.max(minX, Math.min(maxX, cur.x + nx * this.moveSpeed * dt));
         const ny2  = Math.max(minY, Math.min(maxY, cur.y + ny * this.moveSpeed * dt));
         this.node.setPosition(nx2, ny2, 0);
