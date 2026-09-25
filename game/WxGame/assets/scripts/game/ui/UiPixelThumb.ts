@@ -79,8 +79,8 @@ export function mountThumbArt(
     }
 
     if (!unlocked) {
-        // 未解锁：压暗，不改成纯白染色
-        g.fillColor = new Color(12, 10, 16, 170);
+        // 未解锁：轻压暗，仍能看清外形（重罩会让人以为没画）
+        g.fillColor = new Color(12, 10, 16, 90);
         g.roundRect(-size / 2, -size / 2, size, size, 6); g.fill();
     }
     return true;

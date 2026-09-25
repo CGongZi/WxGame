@@ -345,26 +345,51 @@ function drawBeetle(g: Graphics, tint: Color, s: number) {
     }
 }
 
-/** 晶爬：棱角晶体躯干，与坦克圆盾区分 */
+/** 晶爬：多棱水晶团——主晶+侧晶+高光面+大眼 */
 function drawCrystal(g: Graphics, tint: Color, s: number) {
-    g.fillColor = shade(tint, 0.5);
-    g.moveTo(0, 26 * s); g.lineTo(18 * s, 8 * s); g.lineTo(14 * s, -18 * s);
-    g.lineTo(-14 * s, -18 * s); g.lineTo(-18 * s, 8 * s); g.close(); g.fill();
+    g.fillColor = new Color(0, 0, 0, 50);
+    g.ellipse(0, -18 * s, 16 * s, 5 * s); g.fill();
+
+    // 侧晶（后）
+    g.fillColor = shade(tint, 0.45);
+    g.moveTo(-18 * s, 4 * s); g.lineTo(-10 * s, 20 * s); g.lineTo(-4 * s, 2 * s); g.close(); g.fill();
+    g.moveTo(18 * s, 4 * s); g.lineTo(10 * s, 20 * s); g.lineTo(4 * s, 2 * s); g.close(); g.fill();
+
+    // 主体多棱
+    g.fillColor = shade(tint, 0.6);
+    g.moveTo(0, 24 * s); g.lineTo(16 * s, 6 * s); g.lineTo(12 * s, -14 * s);
+    g.lineTo(-12 * s, -14 * s); g.lineTo(-16 * s, 6 * s); g.close(); g.fill();
     g.fillColor = new Color(tint.r, tint.g, tint.b, 255);
-    g.moveTo(0, 18 * s); g.lineTo(12 * s, 4 * s); g.lineTo(8 * s, -12 * s);
-    g.lineTo(-8 * s, -12 * s); g.lineTo(-12 * s, 4 * s); g.close(); g.fill();
-    g.fillColor = shade(tint, 1.35);
-    g.moveTo(-2 * s, 10 * s); g.lineTo(6 * s, 2 * s); g.lineTo(2 * s, -4 * s);
-    g.lineTo(-6 * s, 2 * s); g.close(); g.fill();
-    g.fillColor = new Color(255, 255, 255, 200);
-    g.circle(-4 * s, 6 * s, 2 * s); g.fill();
-    g.circle(5 * s, 4 * s, 1.5 * s); g.fill();
-    // 短晶足
-    g.strokeColor = shade(tint, 0.75);
-    g.lineWidth = 3;
-    g.moveTo(-10 * s, -12 * s); g.lineTo(-16 * s, -22 * s); g.stroke();
-    g.moveTo(10 * s, -12 * s); g.lineTo(16 * s, -22 * s); g.stroke();
-    g.moveTo(0, -14 * s); g.lineTo(0, -24 * s); g.stroke();
+    g.moveTo(0, 18 * s); g.lineTo(12 * s, 4 * s); g.lineTo(8 * s, -10 * s);
+    g.lineTo(-8 * s, -10 * s); g.lineTo(-12 * s, 4 * s); g.close(); g.fill();
+
+    // 切面高光
+    g.fillColor = shade(tint, 1.45);
+    g.moveTo(-4 * s, 12 * s); g.lineTo(4 * s, 14 * s); g.lineTo(2 * s, 2 * s);
+    g.lineTo(-6 * s, 4 * s); g.close(); g.fill();
+    g.fillColor = new Color(255, 255, 255, 160);
+    g.moveTo(-2 * s, 14 * s); g.lineTo(2 * s, 15 * s); g.lineTo(1 * s, 8 * s);
+    g.lineTo(-3 * s, 9 * s); g.close(); g.fill();
+
+    // 大眼
+    g.fillColor = new Color(255, 255, 255, 255);
+    g.ellipse(-5 * s, 4 * s, 4.5 * s, 5 * s); g.fill();
+    g.ellipse(5 * s, 4 * s, 4.5 * s, 5 * s); g.fill();
+    g.fillColor = new Color(80, 200, 255, 255);
+    g.circle(-4.5 * s, 3.5 * s, 2.2 * s); g.fill();
+    g.circle(5.5 * s, 3.5 * s, 2.2 * s); g.fill();
+    g.fillColor = new Color(20, 40, 60, 255);
+    g.circle(-4 * s, 3 * s, 1.2 * s); g.fill();
+    g.circle(6 * s, 3 * s, 1.2 * s); g.fill();
+    g.fillColor = new Color(255, 255, 255, 230);
+    g.circle(-5.2 * s, 5 * s, 0.9 * s); g.fill();
+    g.circle(4.8 * s, 5 * s, 0.9 * s); g.fill();
+
+    // 晶足
+    g.fillColor = shade(tint, 0.7);
+    g.moveTo(-8 * s, -10 * s); g.lineTo(-14 * s, -22 * s); g.lineTo(-6 * s, -12 * s); g.close(); g.fill();
+    g.moveTo(8 * s, -10 * s); g.lineTo(14 * s, -22 * s); g.lineTo(6 * s, -12 * s); g.close(); g.fill();
+    g.moveTo(0, -12 * s); g.lineTo(-3 * s, -24 * s); g.lineTo(3 * s, -24 * s); g.close(); g.fill();
 }
 
 /** 石偶：块状石身 + 符文眼，与坦克肩甲区分 */
@@ -683,42 +708,67 @@ function drawSnake(g: Graphics, tint: Color, s: number) {
     g.moveTo(34 * s, 0); g.lineTo(36 * s, -3 * s); g.stroke();
 }
 
-/** 蘑菇怪：圆柄笑脸 + 斑点大菌盖 */
+/** 蘑菇怪：厚菌盖层叠斑点 + 胖柄围裙 + 大眼笑脸（图鉴缩略也能认） */
 function drawShroom(g: Graphics, tint: Color, s: number) {
-    g.fillColor = new Color(0, 0, 0, 50);
-    g.ellipse(0, -18 * s, 14 * s, 5 * s); g.fill();
+    g.fillColor = new Color(0, 0, 0, 55);
+    g.ellipse(0, -20 * s, 16 * s, 5 * s); g.fill();
 
-    g.fillColor = shade(tint, 1.35);
-    g.roundRect(-8 * s, -16 * s, 16 * s, 24 * s, 7 * s); g.fill();
-    g.fillColor = shade(tint, 1.5);
-    g.ellipse(0, -6 * s, 7 * s, 8 * s); g.fill();
+    // 柄底裙边
+    g.fillColor = shade(tint, 1.15);
+    g.ellipse(0, -16 * s, 14 * s, 5 * s); g.fill();
+    // 胖柄
+    g.fillColor = shade(tint, 1.4);
+    g.roundRect(-9 * s, -16 * s, 18 * s, 26 * s, 8 * s); g.fill();
+    g.fillColor = shade(tint, 1.55);
+    g.ellipse(-2 * s, -4 * s, 6 * s, 10 * s); g.fill();
 
-    g.fillColor = shade(tint, 0.65);
-    g.ellipse(0, 10 * s, 24 * s, 14 * s); g.fill();
+    // 菌盖底荫
+    g.fillColor = shade(tint, 0.4);
+    g.ellipse(0, 6 * s, 26 * s, 8 * s); g.fill();
+    // 菌盖主体
+    g.fillColor = shade(tint, 0.7);
+    g.ellipse(0, 10 * s, 25 * s, 15 * s); g.fill();
     g.fillColor = new Color(tint.r, tint.g, tint.b, 255);
-    g.ellipse(0, 14 * s, 22 * s, 11 * s); g.fill();
-    g.fillColor = new Color(255, 248, 230, 230);
-    g.circle(-9 * s, 14 * s, 4 * s); g.fill();
-    g.circle(7 * s, 18 * s, 3.2 * s); g.fill();
-    g.circle(11 * s, 10 * s, 2.6 * s); g.fill();
-    g.circle(-2 * s, 8 * s, 2.4 * s); g.fill();
-    g.fillColor = new Color(255, 255, 255, 100);
-    g.ellipse(-4 * s, 18 * s, 8 * s, 3 * s); g.fill();
+    g.ellipse(0, 14 * s, 23 * s, 12 * s); g.fill();
+    // 顶弧高光
+    g.fillColor = shade(tint, 1.2);
+    g.ellipse(0, 20 * s, 14 * s, 5 * s); g.fill();
+    g.fillColor = new Color(255, 255, 255, 110);
+    g.ellipse(-4 * s, 20 * s, 8 * s, 3 * s); g.fill();
 
+    // 白斑（大小不一）
+    g.fillColor = new Color(255, 250, 235, 240);
+    g.circle(-10 * s, 14 * s, 4.5 * s); g.fill();
+    g.circle(8 * s, 18 * s, 3.5 * s); g.fill();
+    g.circle(12 * s, 10 * s, 2.8 * s); g.fill();
+    g.circle(-3 * s, 8 * s, 2.4 * s); g.fill();
+    g.circle(2 * s, 16 * s, 2 * s); g.fill();
+    g.fillColor = new Color(255, 255, 255, 180);
+    g.circle(-11 * s, 15 * s, 1.5 * s); g.fill();
+
+    // 柄上大眼（偏可爱）
     g.fillColor = new Color(255, 255, 255, 255);
-    g.ellipse(-4.5 * s, -2 * s, 4 * s, 4.5 * s); g.fill();
-    g.ellipse(4.5 * s, -2 * s, 4 * s, 4.5 * s); g.fill();
-    g.fillColor = new Color(40, 28, 20, 255);
-    g.circle(-3.8 * s, -2.5 * s, 2 * s); g.fill();
-    g.circle(5.2 * s, -2.5 * s, 2 * s); g.fill();
-    g.fillColor = new Color(255, 255, 255, 220);
-    g.circle(-4.8 * s, -1 * s, 0.9 * s); g.fill();
-    g.circle(4.2 * s, -1 * s, 0.9 * s); g.fill();
-    g.strokeColor = shade(tint, 0.45);
-    g.lineWidth = 1.8 * s;
-    g.moveTo(-4 * s, -9 * s);
-    g.bezierCurveTo(-1 * s, -12 * s, 1 * s, -12 * s, 4 * s, -9 * s);
+    g.ellipse(-5 * s, -1 * s, 5 * s, 5.5 * s); g.fill();
+    g.ellipse(5 * s, -1 * s, 5 * s, 5.5 * s); g.fill();
+    g.fillColor = new Color(50, 35, 25, 255);
+    g.circle(-4 * s, -1.5 * s, 2.4 * s); g.fill();
+    g.circle(6 * s, -1.5 * s, 2.4 * s); g.fill();
+    g.fillColor = new Color(255, 255, 255, 230);
+    g.circle(-5.2 * s, 0.5 * s, 1.1 * s); g.fill();
+    g.circle(4.8 * s, 0.5 * s, 1.1 * s); g.fill();
+    // 红颊 + 笑嘴
+    g.fillColor = new Color(255, 140, 120, 150);
+    g.ellipse(-8 * s, -6 * s, 2.5 * s, 1.8 * s); g.fill();
+    g.ellipse(8 * s, -6 * s, 2.5 * s, 1.8 * s); g.fill();
+    g.strokeColor = shade(tint, 0.4);
+    g.lineWidth = 2 * s;
+    g.moveTo(-5 * s, -9 * s);
+    g.bezierCurveTo(-1.5 * s, -13 * s, 1.5 * s, -13 * s, 5 * s, -9 * s);
     g.stroke();
+    // 小牙
+    g.fillColor = new Color(255, 255, 255, 230);
+    g.moveTo(-2 * s, -10 * s); g.lineTo(-0.5 * s, -10 * s); g.lineTo(-1.2 * s, -12 * s); g.close(); g.fill();
+    g.moveTo(0.5 * s, -10 * s); g.lineTo(2 * s, -10 * s); g.lineTo(1.2 * s, -12 * s); g.close(); g.fill();
 }
 
 /** 齿轮怪：咬合黄铜齿轮 + 中心笑脸 */
@@ -766,90 +816,114 @@ function drawCog(g: Graphics, tint: Color, s: number) {
     g.stroke();
 }
 
-/** 电火花：发光圆核 + 闪电冠 + 大眼 */
+/** 电火花：外晕 + 锯齿电芒 + 亮核大眼 */
 function drawSpark(g: Graphics, tint: Color, s: number) {
-    g.fillColor = new Color(tint.r, tint.g, tint.b, 55);
-    g.circle(0, 2 * s, 20 * s); g.fill();
-    g.fillColor = new Color(tint.r, tint.g, tint.b, 100);
-    g.circle(0, 2 * s, 14 * s); g.fill();
+    g.fillColor = new Color(tint.r, tint.g, tint.b, 40);
+    g.circle(0, 2 * s, 22 * s); g.fill();
+    g.fillColor = new Color(tint.r, tint.g, tint.b, 90);
+    g.circle(0, 2 * s, 16 * s); g.fill();
 
-    g.fillColor = shade(tint, 1.15);
-    const bolts: [number, number, number, number, number, number][] = [
-        [0, 14, 5, 22, -2, 18], [0, -8, -7, -18, 2, -14],
-        [10, 4, 20, 8, 14, 0], [-10, 4, -20, 0, -14, 8],
+    // 锯齿电芒（实心三角，缩略更清晰）
+    g.fillColor = shade(tint, 1.2);
+    const tips: [number, number, number, number, number, number][] = [
+        [0, 12, 4, 26, -4, 26], [0, -8, 4, -22, -4, -22],
+        [10, 2, 24, 8, 24, -2], [-10, 2, -24, 8, -24, -2],
+        [8, 10, 18, 20, 12, 16], [-8, 10, -18, 20, -12, 16],
+        [8, -6, 18, -16, 12, -12], [-8, -6, -18, -16, -12, -12],
     ];
-    for (const b of bolts) {
-        g.moveTo(b[0] * s, b[1] * s);
-        g.lineTo(b[2] * s, b[3] * s);
-        g.lineTo(b[4] * s, b[5] * s);
+    for (const t of tips) {
+        g.moveTo(t[0] * s, t[1] * s);
+        g.lineTo(t[2] * s, t[3] * s);
+        g.lineTo(t[4] * s, t[5] * s);
         g.close(); g.fill();
     }
 
-    g.fillColor = new Color(255, 255, 230, 255);
-    g.circle(0, 2 * s, 10 * s); g.fill();
+    g.fillColor = new Color(255, 255, 240, 255);
+    g.circle(0, 2 * s, 11 * s); g.fill();
     g.fillColor = new Color(tint.r, tint.g, tint.b, 255);
-    g.circle(0, 2 * s, 7 * s); g.fill();
+    g.circle(0, 2 * s, 8 * s); g.fill();
+    g.fillColor = shade(tint, 1.35);
+    g.circle(0, 2 * s, 5 * s); g.fill();
 
     g.fillColor = new Color(255, 255, 255, 255);
-    g.ellipse(-3.5 * s, 4 * s, 3.8 * s, 4.2 * s); g.fill();
-    g.ellipse(3.5 * s, 4 * s, 3.8 * s, 4.2 * s); g.fill();
-    g.fillColor = new Color(40, 40, 20, 255);
-    g.circle(-3 * s, 3.5 * s, 1.8 * s); g.fill();
-    g.circle(4 * s, 3.5 * s, 1.8 * s); g.fill();
+    g.ellipse(-4 * s, 4 * s, 4.2 * s, 4.6 * s); g.fill();
+    g.ellipse(4 * s, 4 * s, 4.2 * s, 4.6 * s); g.fill();
+    g.fillColor = new Color(40, 40, 15, 255);
+    g.circle(-3.5 * s, 3.5 * s, 2 * s); g.fill();
+    g.circle(4.5 * s, 3.5 * s, 2 * s); g.fill();
     g.fillColor = new Color(255, 255, 255, 230);
-    g.circle(-3.8 * s, 5 * s, 0.8 * s); g.fill();
-    g.circle(3.2 * s, 5 * s, 0.8 * s); g.fill();
+    g.circle(-4.5 * s, 5.2 * s, 0.9 * s); g.fill();
+    g.circle(3.5 * s, 5.2 * s, 0.9 * s); g.fill();
+    // 小嘴
+    g.fillColor = shade(tint, 0.35);
+    g.ellipse(0, -1 * s, 3 * s, 1.5 * s); g.fill();
 }
 
-/** 提线木偶：关节木娃 + 提线 + 画脸 */
+/** 提线木偶：提线横杆 + 圆头涂脸 + 关节球四肢 + 背心 */
 function drawPuppet(g: Graphics, tint: Color, s: number) {
     g.fillColor = new Color(0, 0, 0, 45);
-    g.ellipse(0, -20 * s, 12 * s, 4 * s); g.fill();
+    g.ellipse(0, -20 * s, 13 * s, 4 * s); g.fill();
 
-    g.strokeColor = new Color(210, 210, 220, 200);
-    g.lineWidth = 1.3 * s;
-    g.moveTo(-7 * s, 24 * s); g.lineTo(-6 * s, 12 * s); g.stroke();
-    g.moveTo(7 * s, 24 * s); g.lineTo(6 * s, 12 * s); g.stroke();
-    g.fillColor = new Color(180, 160, 120, 255);
-    g.roundRect(-10 * s, 22 * s, 20 * s, 4 * s, 1 * s); g.fill();
+    // 提线横杆 + 线
+    g.fillColor = new Color(160, 130, 90, 255);
+    g.roundRect(-12 * s, 22 * s, 24 * s, 5 * s, 2 * s); g.fill();
+    g.strokeColor = new Color(220, 220, 230, 210);
+    g.lineWidth = 1.4 * s;
+    g.moveTo(-8 * s, 22 * s); g.lineTo(-7 * s, 12 * s); g.stroke();
+    g.moveTo(8 * s, 22 * s); g.lineTo(7 * s, 12 * s); g.stroke();
+    g.moveTo(0, 22 * s); g.lineTo(0, 14 * s); g.stroke();
 
-    g.fillColor = shade(tint, 0.6);
-    g.roundRect(-15 * s, -4 * s, 6 * s, 14 * s, 2.5 * s); g.fill();
-    g.roundRect(9 * s, -4 * s, 6 * s, 14 * s, 2.5 * s); g.fill();
-    g.roundRect(-8 * s, -18 * s, 6 * s, 12 * s, 2.5 * s); g.fill();
-    g.roundRect(2 * s, -18 * s, 6 * s, 12 * s, 2.5 * s); g.fill();
-    g.fillColor = shade(tint, 0.9);
-    g.circle(-12 * s, 2 * s, 3 * s); g.fill();
-    g.circle(12 * s, 2 * s, 3 * s); g.fill();
-    g.circle(-5 * s, -10 * s, 2.8 * s); g.fill();
-    g.circle(5 * s, -10 * s, 2.8 * s); g.fill();
+    // 四肢 + 关节球
+    g.fillColor = shade(tint, 0.55);
+    g.roundRect(-16 * s, -6 * s, 7 * s, 16 * s, 3 * s); g.fill();
+    g.roundRect(9 * s, -6 * s, 7 * s, 16 * s, 3 * s); g.fill();
+    g.roundRect(-9 * s, -20 * s, 7 * s, 14 * s, 3 * s); g.fill();
+    g.roundRect(2 * s, -20 * s, 7 * s, 14 * s, 3 * s); g.fill();
+    g.fillColor = shade(tint, 0.95);
+    for (const [x, y] of [[-12.5, 2], [12.5, 2], [-5.5, -12], [5.5, -12]] as const) {
+        g.circle(x * s, y * s, 3.2 * s); g.fill();
+    }
+    // 手/脚块
+    g.fillColor = shade(tint, 0.7);
+    g.ellipse(-12.5 * s, -12 * s, 4 * s, 3 * s); g.fill();
+    g.ellipse(12.5 * s, -12 * s, 4 * s, 3 * s); g.fill();
+    g.ellipse(-5.5 * s, -22 * s, 4 * s, 2.5 * s); g.fill();
+    g.ellipse(5.5 * s, -22 * s, 4 * s, 2.5 * s); g.fill();
 
-    g.fillColor = shade(tint, 0.8);
-    g.roundRect(-9 * s, -8 * s, 18 * s, 18 * s, 4 * s); g.fill();
+    // 身体背心
+    g.fillColor = shade(tint, 0.75);
+    g.roundRect(-10 * s, -10 * s, 20 * s, 20 * s, 5 * s); g.fill();
     g.fillColor = new Color(tint.r, tint.g, tint.b, 255);
-    g.roundRect(-7 * s, -6 * s, 14 * s, 14 * s, 3 * s); g.fill();
-
-    g.fillColor = shade(tint, 1.05);
-    g.circle(0, 12 * s, 9 * s); g.fill();
+    g.roundRect(-8 * s, -8 * s, 16 * s, 16 * s, 4 * s); g.fill();
     g.fillColor = shade(tint, 1.25);
-    g.ellipse(0, 10 * s, 5 * s, 4 * s); g.fill();
+    g.ellipse(0, -2 * s, 6 * s, 5 * s); g.fill();
+    // 纽扣
+    g.fillColor = new Color(220, 180, 80, 255);
+    g.circle(0, 2 * s, 1.5 * s); g.fill();
+    g.circle(0, -4 * s, 1.5 * s); g.fill();
+
+    // 圆头
+    g.fillColor = shade(tint, 1.1);
+    g.circle(0, 12 * s, 10 * s); g.fill();
+    g.fillColor = shade(tint, 1.3);
+    g.ellipse(-2 * s, 14 * s, 5 * s, 4 * s); g.fill();
 
     g.fillColor = new Color(255, 255, 255, 255);
-    g.ellipse(-3.5 * s, 13 * s, 3.5 * s, 4 * s); g.fill();
-    g.ellipse(3.5 * s, 13 * s, 3.5 * s, 4 * s); g.fill();
-    g.fillColor = new Color(50, 30, 20, 255);
-    g.circle(-3 * s, 12.5 * s, 1.6 * s); g.fill();
-    g.circle(4 * s, 12.5 * s, 1.6 * s); g.fill();
+    g.ellipse(-4 * s, 13 * s, 4 * s, 4.5 * s); g.fill();
+    g.ellipse(4 * s, 13 * s, 4 * s, 4.5 * s); g.fill();
+    g.fillColor = new Color(45, 25, 20, 255);
+    g.circle(-3.5 * s, 12.5 * s, 1.8 * s); g.fill();
+    g.circle(4.5 * s, 12.5 * s, 1.8 * s); g.fill();
     g.fillColor = new Color(255, 255, 255, 220);
-    g.circle(-3.8 * s, 14 * s, 0.7 * s); g.fill();
-    g.circle(3.2 * s, 14 * s, 0.7 * s); g.fill();
-    g.fillColor = new Color(240, 120, 110, 160);
-    g.ellipse(-6 * s, 9 * s, 2 * s, 1.5 * s); g.fill();
-    g.ellipse(6 * s, 9 * s, 2 * s, 1.5 * s); g.fill();
+    g.circle(-4.5 * s, 14 * s, 0.8 * s); g.fill();
+    g.circle(3.5 * s, 14 * s, 0.8 * s); g.fill();
+    g.fillColor = new Color(255, 130, 120, 170);
+    g.ellipse(-7 * s, 9 * s, 2.5 * s, 1.8 * s); g.fill();
+    g.ellipse(7 * s, 9 * s, 2.5 * s, 1.8 * s); g.fill();
     g.strokeColor = shade(tint, 0.4);
-    g.lineWidth = 1.5 * s;
-    g.moveTo(-3 * s, 8 * s);
-    g.bezierCurveTo(-1 * s, 6 * s, 1 * s, 6 * s, 3 * s, 8 * s);
+    g.lineWidth = 1.6 * s;
+    g.moveTo(-3.5 * s, 8 * s);
+    g.bezierCurveTo(-1 * s, 5.5 * s, 1 * s, 5.5 * s, 3.5 * s, 8 * s);
     g.stroke();
 }
 

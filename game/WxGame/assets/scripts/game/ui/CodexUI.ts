@@ -314,7 +314,7 @@ export class CodexUI {
         tipBg.fillColor = new Color(18, 14, 12, 160);
         tipBg.roundRect(-320, -13, 640, 26, 6); tipBg.fill();
         const tipLbl = CodexUI._lbl(
-            tipBar, '首次遭遇自动解锁 · 未知显示？？', 0, 0, 11, UiTone.muted, 620,
+            tipBar, '首次遭遇自动解锁 · 未遇显示未探索/未遭遇', 0, 0, 11, UiTone.muted, 620,
         );
 
         // 页签固定在列表上方；列表顶边不得顶穿页签
@@ -530,7 +530,7 @@ export class CodexUI {
             return {
                 id: e.id,
                 emoji: open ? e.emoji : '?',
-                name: open ? e.displayName : '？？',
+                name: open ? e.displayName : '未遭遇',
                 unlocked: open,
                 art: 'enemy' as ThumbArtKind,
             };
@@ -541,10 +541,11 @@ export class CodexUI {
             const e = ENEMY_CODEX.find(row => row.id === CodexUI._pickEnemy);
             if (!e) return;
             const open = gm?.hasCodexEnemy(e.id) ?? false;
-            CodexUI._detailCard(detail, '', open ? e.displayName : '？？？', open
+            CodexUI._detailCard(detail, '', open ? e.displayName : '未遭遇', open
                 ? CodexUI._enemyStatBlock(e)
-                : '？？', open ? 18 : 4);
-            mountThumbArt(detail, 'enemy', e.id, 56, open);
+                : '尚未遇见这种怪兽', open ? 18 : 4);
+            // 详情立绘放大；未遭遇也全彩显示（仅宫格压暗）
+            mountThumbArt(detail, 'enemy', e.id, 72, true);
             const art = detail.getChildByName('ThumbArt');
             if (art) art.setPosition(0, 72, 0);
         });
