@@ -605,11 +605,11 @@ function paintWing(g: Graphics, kind: string, tint: Color, front: boolean) {
         return;
     }
     if (kind === 'mosquito') {
-        g.fillColor = c(210, 235, 210, 110 * mul + 20);
-        g.ellipse(dir * 12, 2, 13, 4.5); g.fill();
-        g.strokeColor = c(255, 255, 255, 90);
-        g.lineWidth = 1;
-        g.moveTo(0, 2); g.lineTo(dir * 22, 3); g.stroke();
+        g.fillColor = c(210, 235, 210, 140 * mul + 30);
+        g.ellipse(dir * 14, 3, 14, 6); g.fill();
+        g.strokeColor = c(255, 255, 255, 110);
+        g.lineWidth = 1.2;
+        g.moveTo(0, 2); g.lineTo(dir * 24, 4); g.stroke();
         return;
     }
     if (kind === 'raven') {
@@ -711,16 +711,24 @@ function paintDragonTail(g: Graphics, tint: Color) {
 
 function paintFlyerCore(g: Graphics, kind: string, tint: Color) {
     if (kind === 'jelly') {
-        g.fillColor = shade(tint, 0.7, 200);
-        g.ellipse(0, 4, 14, 10); g.fill();
-        g.fillColor = new Color(tint.r, tint.g, tint.b, 180);
-        g.ellipse(0, 6, 11, 8); g.fill();
-        g.fillColor = shade(tint, 1.3, 140);
-        g.ellipse(-3, 9, 4, 3); g.fill();
-        g.fillColor = c(255, 255, 255, 200);
-        g.ellipse(-4, 8, 3.5, 3); g.fill(); g.ellipse(4, 8, 3.5, 3); g.fill();
-        g.fillColor = c(40, 80, 100);
-        g.circle(-4, 7.5, 1.4); g.fill(); g.circle(4, 7.5, 1.4); g.fill();
+        g.fillColor = shade(tint, 0.65, 210);
+        g.ellipse(0, 4, 16, 11); g.fill();
+        g.fillColor = new Color(tint.r, tint.g, tint.b, 200);
+        g.ellipse(0, 6, 13, 9); g.fill();
+        g.fillColor = shade(tint, 1.35, 160);
+        g.ellipse(-3, 10, 5, 3.5); g.fill();
+        g.fillColor = c(255, 255, 255, 255);
+        g.ellipse(-4.5, 8, 4.2, 4.5); g.fill();
+        g.ellipse(4.5, 8, 4.2, 4.5); g.fill();
+        g.fillColor = c(40, 90, 110);
+        g.circle(-4, 7.5, 1.8); g.fill();
+        g.circle(5, 7.5, 1.8); g.fill();
+        g.fillColor = c(255, 255, 255, 220);
+        g.circle(-5, 9, 0.9); g.fill();
+        g.circle(4, 9, 0.9); g.fill();
+        g.strokeColor = shade(tint, 0.4, 200);
+        g.lineWidth = 1.5;
+        g.moveTo(-3, 2); g.bezierCurveTo(-1, 0, 1, 0, 3, 2); g.stroke();
         return;
     }
     if (kind === 'moth') {
@@ -740,14 +748,23 @@ function paintFlyerCore(g: Graphics, kind: string, tint: Color) {
     }
     if (kind === 'mosquito') {
         g.fillColor = tint;
-        g.ellipse(0, 0, 5, 12); g.fill();
-        g.fillColor = shade(tint, 0.75);
-        g.ellipse(0, -10, 4, 6); g.fill();
+        g.ellipse(0, -2, 7, 11); g.fill();
+        g.fillColor = shade(tint, 1.25);
+        g.ellipse(0, -5, 4, 5); g.fill();
+        g.fillColor = shade(tint, 0.85);
+        g.circle(0, 10, 6.5); g.fill();
         g.strokeColor = shade(tint, 0.4);
-        g.lineWidth = 1.8;
-        g.moveTo(0, 10); g.lineTo(0, 22); g.stroke();
-        g.fillColor = c(255, 240, 120);
-        g.circle(-1.5, 5, 1.6); g.fill(); g.circle(2, 5, 1.6); g.fill();
+        g.lineWidth = 1.6;
+        g.moveTo(-1.5, 14); g.lineTo(0, 22); g.lineTo(1.5, 14); g.stroke();
+        g.fillColor = c(255, 255, 210);
+        g.ellipse(-3, 10, 3.2, 3.6); g.fill();
+        g.ellipse(3, 10, 3.2, 3.6); g.fill();
+        g.fillColor = c(30, 40, 20);
+        g.circle(-2.5, 9.5, 1.5); g.fill();
+        g.circle(3.5, 9.5, 1.5); g.fill();
+        g.fillColor = c(255, 255, 255, 220);
+        g.circle(-3.2, 11, 0.8); g.fill();
+        g.circle(2.8, 11, 0.8); g.fill();
         g.strokeColor = shade(tint, 0.5);
         g.lineWidth = 1.2;
         g.moveTo(-3, -8); g.lineTo(-9, -18); g.stroke();
