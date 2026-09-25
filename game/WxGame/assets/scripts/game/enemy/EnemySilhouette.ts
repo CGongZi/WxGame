@@ -324,34 +324,6 @@ function drawBeetle(g: Graphics, tint: Color, s: number) {
     }
 }
 
-/** 毒蛙：胖腹 + 后腿蓄力感，与史莱姆圆团区分 */
-function drawToad(g: Graphics, tint: Color, s: number) {
-    g.fillColor = shade(tint, 0.55);
-    g.ellipse(0, -8 * s, 24 * s, 14 * s); g.fill();
-    g.fillColor = new Color(tint.r, tint.g, tint.b, 255);
-    g.ellipse(0, -2 * s, 20 * s, 16 * s); g.fill();
-    g.fillColor = shade(tint, 1.2);
-    g.ellipse(-2 * s, 6 * s, 12 * s, 10 * s); g.fill();
-    // 鼓眼
-    g.fillColor = new Color(240, 250, 180, 255);
-    g.circle(-10 * s, 12 * s, 5 * s); g.fill();
-    g.circle(10 * s, 12 * s, 5 * s); g.fill();
-    g.fillColor = new Color(20, 40, 10, 255);
-    g.circle(-9 * s, 12 * s, 2.2 * s); g.fill();
-    g.circle(11 * s, 12 * s, 2.2 * s); g.fill();
-    // 后腿
-    g.fillColor = shade(tint, 0.7);
-    g.ellipse(-18 * s, -10 * s, 10 * s, 8 * s); g.fill();
-    g.ellipse(18 * s, -10 * s, 10 * s, 8 * s); g.fill();
-    g.fillColor = new Color(40, 90, 40, 255);
-    g.roundRect(-22 * s, -18 * s, 10 * s, 5 * s, 2 * s); g.fill();
-    g.roundRect(12 * s, -18 * s, 10 * s, 5 * s, 2 * s); g.fill();
-    // 斑点
-    g.fillColor = shade(tint, 0.45);
-    g.circle(-6 * s, 0, 3 * s); g.fill();
-    g.circle(8 * s, -4 * s, 2.5 * s); g.fill();
-}
-
 /** 晶爬：棱角晶体躯干，与坦克圆盾区分 */
 function drawCrystal(g: Graphics, tint: Color, s: number) {
     g.fillColor = shade(tint, 0.5);
