@@ -243,8 +243,9 @@ export class SoulShop {
             art.setParent(thumb);
             art.setPosition(0, 0, 0);
             art.addComponent(UITransform).setContentSize(48, 48);
-            // 角色由 _paintThumb 自设 0.6；补给/武器勿再 ×0.4（会缩成芝麻粒）
-            art.setScale(1, 1, 1);
+            // 仅补给画满框；永久属性保持原先 ×0.4（用户确认大小刚好）
+            const kitFull = offer.kind === 'kit';
+            art.setScale(kitFull ? 1 : 0.4, kitFull ? 1 : 0.4, 1);
             SoulShop._paintThumb(art.addComponent(Graphics), offer);
 
             const nameY = isChar ? gh / 2 - 24 : gh / 2 - 62;
