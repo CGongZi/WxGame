@@ -89,7 +89,7 @@ export class SoulShop {
         SoulShop._lbl(panel, '灵魂石商店', 0, titleY, 22, UiTone.title, 340);
         const soulLbl = SoulShop._lbl(panel, '', 0, titleY - 24, 14, UiTone.accent, 340);
 
-        // tip 仅用于购买/技能反馈，平时隐藏（不放「点上方…」这类说明）
+        // tip 仅用于购买成败反馈，平时隐藏
         const tipY = titleY - 44;
         const tipBar = new Node('TipBar');
         tipBar.layer = Layers.Enum.UI_2D;
@@ -218,28 +218,11 @@ export class SoulShop {
             const btnH = 34;
             const btnY = -gh / 2 + 18 + btnH / 2;
             const helperY = btnY + btnH / 2 + 14;
+            const isChar = offer.kind === 'character';
 
-            const thumb = new Node('Thumb');
-            thumb.layer = Layers.Enum.UI_2D;
-            thumb.setParent(shell);
-            thumb.setPosition(0, gh / 2 - 28, 0);
-            thumb.addComponent(UITransform).setContentSize(56, 56);
-            const tg = thumb.addComponent(Graphics);
-            tg.fillColor = new Color(22, 18, 14, 255);
-            tg.roundRect(-26, -26, 52, 52, 8); tg.fill();
-            tg.strokeColor = new Color(140, 120, 90, 120);
-            tg.lineWidth = 1.2;
-            tg.roundRect(-26, -26, 52, 52, 8); tg.stroke();
-            const art = new Node('Art');
-            art.layer = Layers.Enum.UI_2D;
-            art.setParent(thumb);
-            art.setPosition(0, 0, 0);
-            art.addComponent(UITransform).setContentSize(48, 48);
-            art.setScale(0.4, 0.4, 1);
-            SoulShop._paintThumb(art.addComponent(Graphics), offer);
-
-            // #181 角色：左侧技能图标，点击顶部 tip 简介
-            if (offer.kind === 'character') {
+            // 角色：左上技能图标 + 右侧多行简介（不再用顶栏一行绿条）
+            let skillBlockH = 0;
+            if (isChar) {
                 const ch = getCharacter(offer.characterId);
                 const sk = skillFor(ch?.id ?? offer.characterId);
                 const skillBtn = new Node('SkillBtn');
@@ -259,28 +242,64 @@ export class SoulShop {
                 SoulShop._lbl(skillBtn, sk.emoji, 0, 1, 16, new Color(255, 245, 230, 255), 36);
                 SoulShop._lbl(skillBtn, '技', 0, -22, 9, new Color(200, 180, 140, 220), 36);
 
-                skillBtn.on(Node.EventType.TOUCH_END, (ev) => {
-                    ev.propagationStopped = true;
-                    AudioManager.playUi();
-                    stickyTip = {
-                        text: `${sk.emoji} ${sk.name} · ${sk.desc} · CD ${sk.cooldown}s`,
-                        ok: true,
-                    };
-                    setTip(stickyTip.text, true);
+                const infoW = dw - 78;
+                const infoCx = -dw / 2 + 56 + infoW / 2;
+                const titleY0 = gh / 2 - 16;
+                const titleLbl = SoulShop._lbl(
+                    shell,
+                    `${sk.name} · CD ${sk.cooldown}s`,
+                    infoCx, titleY0, 12,
+                    new Color(255, 220, 160, 255), infoW,
+                );
+                titleLbl.getComponent(Label)!.horizontalAlign = Label.HorizontalAlign.LEFT;
+                const descLines = SoulShop._wrapText(sk.desc || '', 15);
+                descLines.slice(0, 3).forEach((t, i) => {
+                    const dl = SoulShop._lbl(
+                        shell, t,
+                        infoCx, titleY0 - 15 - i * 13, 11,
+                        new Color(190, 175, 150, 255), infoW,
+                    );
+                    dl.getComponent(Label)!.horizontalAlign = Label.HorizontalAlign.LEFT;
                 });
+                skillBlockH = 20 + Math.min(3, Math.max(1, descLines.length)) * 13;
             }
 
-            SoulShop._lbl(shell, offer.name, 0, gh / 2 - 62, 15, new Color(255, 240, 220, 255), dw - 24);
+            // 立绘：角色页顶区改放技能简介（右侧宫格已有立绘）；其它商品仍置顶
+            if (!isChar) {
+                const thumb = new Node('Thumb');
+                thumb.layer = Layers.Enum.UI_2D;
+                thumb.setParent(shell);
+                thumb.setPosition(0, gh / 2 - 28, 0);
+                thumb.addComponent(UITransform).setContentSize(56, 56);
+                const tg = thumb.addComponent(Graphics);
+                tg.fillColor = new Color(22, 18, 14, 255);
+                tg.roundRect(-26, -26, 52, 52, 8); tg.fill();
+                tg.strokeColor = new Color(140, 120, 90, 120);
+                tg.lineWidth = 1.2;
+                tg.roundRect(-26, -26, 52, 52, 8); tg.stroke();
+                const art = new Node('Art');
+                art.layer = Layers.Enum.UI_2D;
+                art.setParent(thumb);
+                art.setPosition(0, 0, 0);
+                art.addComponent(UITransform).setContentSize(48, 48);
+                art.setScale(0.4, 0.4, 1);
+                SoulShop._paintThumb(art.addComponent(Graphics), offer);
+            }
+
+            const nameY = isChar
+                ? gh / 2 - 28 - Math.max(skillBlockH, 40) - 10
+                : gh / 2 - 62;
+            SoulShop._lbl(shell, offer.name, 0, nameY, 15, new Color(255, 240, 220, 255), dw - 24);
             SoulShop._lbl(
                 shell,
                 state.owned ? '已拥有' : `售价  ${offer.cost} 魂`,
-                0, gh / 2 - 80, 12,
+                0, nameY - 18, 12,
                 state.owned ? new Color(140, 200, 140, 255) : new Color(230, 190, 120, 255),
                 dw - 24,
             );
 
             const { lines, helper } = SoulShop._detailBlocks(offer);
-            const lineTop = gh / 2 - 100;
+            const lineTop = nameY - 38;
             const lineStep = 15;
             const lineFloor = helperY + 12;
             lines.forEach((line, i) => {
@@ -491,15 +510,13 @@ export class SoulShop {
                 const one = desc.length > 28 ? `${desc.slice(0, 27)}…` : desc;
                 lines.push({ text: one, color: body });
             }
-            // 风格 + 专属 + 技能名（点左侧技图标看详情）
+            // 风格 + 专属（技能简介已画在左上图标旁）
             const tag = SoulShop._styleTag(ch.base);
-            const sk = skillFor(ch.id);
             lines.push(
                 { text: `风格 · ${tag}`, color: accent },
                 { text: `专属 ${gear}`, color: accent },
-                { text: `技能 ${sk.emoji}${sk.name}`, color: accent },
             );
-            return { lines, helper: '解锁后备战可选出战 · 点左上技能图标看介绍' };
+            return { lines, helper: '解锁后备战可选出战' };
         }
 
         if (offer.kind === 'kit') {
@@ -677,6 +694,20 @@ export class SoulShop {
             }
         }
         return { owned: false, btnLabel: '购买' };
+    }
+
+    /** 按字数折行（中文按字符；英文空格优先） */
+    private static _wrapText(text: string, maxChars: number): string[] {
+        const raw = (text || '').trim();
+        if (!raw) return [];
+        if (raw.length <= maxChars) return [raw];
+        const out: string[] = [];
+        let i = 0;
+        while (i < raw.length) {
+            out.push(raw.slice(i, i + maxChars));
+            i += maxChars;
+        }
+        return out;
     }
 
     private static _lbl(
