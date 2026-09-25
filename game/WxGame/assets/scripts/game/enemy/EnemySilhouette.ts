@@ -40,41 +40,119 @@ export function drawEnemySilhouette(g: Graphics, kind: string, tint: Color, size
     else drawSlime(g, tint, s);
 }
 
-/** 史莱姆：半透凝胶团 + 内核 + 高光 + 裂嘴，底部摊开带滴落 */
+/** 史莱姆：元气骑士式圆凝胶——对称胖团、大眼、笑嘴、顶高光、小手 */
 function drawSlime(g: Graphics, tint: Color, s: number) {
-    // 底部摊开的胶体
-    g.fillColor = shade(tint, 0.75);
-    g.ellipse(0, -14 * s, 24 * s, 8 * s); g.fill();
-    g.circle(-20 * s, -18 * s, 4 * s); g.fill();
-    g.circle(22 * s, -16 * s, 3 * s); g.fill();
-    // 主体（上小下大的水滴）
-    g.fillColor = new Color(tint.r, tint.g, tint.b, 235);
-    g.moveTo(-22 * s, -12 * s);
-    g.bezierCurveTo(-24 * s, 6 * s, -12 * s, 22 * s, 0, 22 * s);
-    g.bezierCurveTo(12 * s, 22 * s, 24 * s, 6 * s, 22 * s, -12 * s);
-    g.close(); g.fill();
-    // 内核（更深）与气泡
-    g.fillColor = shade(tint, 0.6);
-    g.ellipse(2 * s, -2 * s, 9 * s, 7 * s); g.fill();
+    // 落地阴影
+    g.fillColor = new Color(0, 0, 0, 55);
+    g.ellipse(0, -20 * s, 20 * s, 5 * s); g.fill();
+
+    // 主体：对称圆胖团（略扁）
+    g.fillColor = shade(tint, 0.72);
+    g.ellipse(0, -4 * s, 23 * s, 20 * s); g.fill();
+    g.fillColor = new Color(tint.r, tint.g, tint.b, 255);
+    g.ellipse(0, -2 * s, 21 * s, 18 * s); g.fill();
+
+    // 肚皮浅色
     g.fillColor = shade(tint, 1.35);
-    g.circle(-9 * s, 6 * s, 2.2 * s); g.fill();
-    g.circle(12 * s, -6 * s, 1.6 * s); g.fill();
-    // 眼：大小不一、偏一侧
-    g.fillColor = new Color(255, 255, 255, 240);
-    g.ellipse(-7 * s, 6 * s, 5 * s, 5.5 * s); g.fill();
-    g.ellipse(7 * s, 8 * s, 3.5 * s, 4 * s); g.fill();
-    g.fillColor = new Color(20, 30, 20, 255);
-    g.circle(-6 * s, 5 * s, 2.6 * s); g.fill();
-    g.circle(7.5 * s, 7 * s, 1.8 * s); g.fill();
-    // 裂嘴 + 牙
+    g.ellipse(0, -6 * s, 12 * s, 9 * s); g.fill();
+
+    // 小手（左右对称）
+    g.fillColor = shade(tint, 0.9);
+    g.ellipse(-20 * s, -2 * s, 5 * s, 4 * s); g.fill();
+    g.ellipse(20 * s, -2 * s, 5 * s, 4 * s); g.fill();
+
+    // 大眼（对称、偏可爱）
+    g.fillColor = new Color(255, 255, 255, 255);
+    g.ellipse(-7 * s, 6 * s, 6 * s, 6.5 * s); g.fill();
+    g.ellipse(7 * s, 6 * s, 6 * s, 6.5 * s); g.fill();
+    g.fillColor = new Color(28, 36, 48, 255);
+    g.circle(-6 * s, 5.5 * s, 3 * s); g.fill();
+    g.circle(8 * s, 5.5 * s, 3 * s); g.fill();
+    g.fillColor = new Color(255, 255, 255, 230);
+    g.circle(-7.2 * s, 7 * s, 1.1 * s); g.fill();
+    g.circle(6.8 * s, 7 * s, 1.1 * s); g.fill();
+
+    // 笑嘴 + 两颗小牙
+    g.strokeColor = shade(tint, 0.35);
+    g.lineWidth = 2 * Math.max(1, s);
+    g.moveTo(-6 * s, -4 * s);
+    g.bezierCurveTo(-2 * s, -9 * s, 2 * s, -9 * s, 6 * s, -4 * s);
+    g.stroke();
+    g.fillColor = new Color(255, 255, 255, 235);
+    g.moveTo(-3 * s, -5 * s); g.lineTo(-1.2 * s, -5 * s); g.lineTo(-2.1 * s, -7.2 * s); g.close(); g.fill();
+    g.moveTo(1.2 * s, -5 * s); g.lineTo(3 * s, -5 * s); g.lineTo(2.1 * s, -7.2 * s); g.close(); g.fill();
+
+    // 顶高光 + 小气泡
+    g.fillColor = new Color(255, 255, 255, 130);
+    g.ellipse(-6 * s, 12 * s, 7 * s, 3.5 * s); g.fill();
+    g.fillColor = shade(tint, 1.45);
+    g.circle(10 * s, 2 * s, 1.8 * s); g.fill();
+    g.circle(-12 * s, -8 * s, 1.4 * s); g.fill();
+}
+
+/** 毒蛙：元气骑士式胖蛙——鼓眼头顶、宽嘴、后腿蓄力、斑点 */
+function drawToad(g: Graphics, tint: Color, s: number) {
+    // 落地阴影
+    g.fillColor = new Color(0, 0, 0, 55);
+    g.ellipse(0, -20 * s, 22 * s, 5 * s); g.fill();
+
+    // 后腿（先画，在身体后）
+    g.fillColor = shade(tint, 0.55);
+    g.ellipse(-18 * s, -10 * s, 11 * s, 8 * s); g.fill();
+    g.ellipse(18 * s, -10 * s, 11 * s, 8 * s); g.fill();
+    // 脚掌
     g.fillColor = shade(tint, 0.4);
-    g.moveTo(-8 * s, -4 * s); g.bezierCurveTo(-2 * s, -9 * s, 6 * s, -8 * s, 10 * s, -3 * s); g.lineTo(-8 * s, -4 * s); g.close(); g.fill();
+    g.ellipse(-20 * s, -17 * s, 9 * s, 3.5 * s); g.fill();
+    g.ellipse(20 * s, -17 * s, 9 * s, 3.5 * s); g.fill();
+
+    // 身体（圆胖腹）
+    g.fillColor = shade(tint, 0.7);
+    g.ellipse(0, -6 * s, 22 * s, 15 * s); g.fill();
+    g.fillColor = new Color(tint.r, tint.g, tint.b, 255);
+    g.ellipse(0, -4 * s, 20 * s, 14 * s); g.fill();
+
+    // 肚皮
+    g.fillColor = shade(tint, 1.4);
+    g.ellipse(0, -7 * s, 11 * s, 8 * s); g.fill();
+
+    // 前臂
+    g.fillColor = shade(tint, 0.85);
+    g.ellipse(-14 * s, -8 * s, 5 * s, 4 * s); g.fill();
+    g.ellipse(14 * s, -8 * s, 5 * s, 4 * s); g.fill();
+
+    // 头（略抬）
+    g.fillColor = new Color(tint.r, tint.g, tint.b, 255);
+    g.ellipse(0, 6 * s, 16 * s, 12 * s); g.fill();
+
+    // 鼓眼（头顶两侧）
+    g.fillColor = shade(tint, 0.95);
+    g.circle(-9 * s, 16 * s, 6 * s); g.fill();
+    g.circle(9 * s, 16 * s, 6 * s); g.fill();
+    g.fillColor = new Color(255, 250, 210, 255);
+    g.circle(-9 * s, 16.5 * s, 4.5 * s); g.fill();
+    g.circle(9 * s, 16.5 * s, 4.5 * s); g.fill();
+    g.fillColor = new Color(30, 50, 20, 255);
+    g.circle(-8 * s, 16 * s, 2.4 * s); g.fill();
+    g.circle(10 * s, 16 * s, 2.4 * s); g.fill();
     g.fillColor = new Color(255, 255, 255, 220);
-    g.moveTo(-4 * s, -4.5 * s); g.lineTo(-2 * s, -4.5 * s); g.lineTo(-3 * s, -7 * s); g.close(); g.fill();
-    g.moveTo(3 * s, -5 * s); g.lineTo(5 * s, -5 * s); g.lineTo(4 * s, -7.5 * s); g.close(); g.fill();
-    // 顶部高光
-    g.fillColor = new Color(255, 255, 255, 110);
-    g.ellipse(-8 * s, 14 * s, 6 * s, 3 * s); g.fill();
+    g.circle(-9 * s, 17.2 * s, 0.9 * s); g.fill();
+    g.circle(9 * s, 17.2 * s, 0.9 * s); g.fill();
+
+    // 宽嘴
+    g.fillColor = shade(tint, 0.35);
+    g.ellipse(0, 2 * s, 10 * s, 3.5 * s); g.fill();
+    g.fillColor = new Color(180, 60, 70, 200);
+    g.ellipse(0, 1.5 * s, 7 * s, 2 * s); g.fill();
+
+    // 背斑
+    g.fillColor = shade(tint, 0.45);
+    g.circle(-7 * s, -2 * s, 3.2 * s); g.fill();
+    g.circle(8 * s, -5 * s, 2.6 * s); g.fill();
+    g.circle(2 * s, 8 * s, 2.2 * s); g.fill();
+
+    // 顶高光
+    g.fillColor = new Color(255, 255, 255, 90);
+    g.ellipse(-4 * s, 10 * s, 5 * s, 2.5 * s); g.fill();
 }
 
 /** 疾行者：低伏的影犬——拉长身体、后腿蹬地、长尾、发光双眼与残影 */
