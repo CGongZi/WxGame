@@ -1,13 +1,16 @@
 import { Node, Label, Color, UITransform, Graphics, Layers, BlockInputEvents, tween } from 'cc';
 import { ConfigRemote } from '../../core/ConfigRemote';
 import { ConfigStore } from '../../core/ConfigStore';
+import { CloudSync } from '../../core/CloudSync';
 import { GameManager } from '../../core/GameManager';
+import { SaveStore } from '../../core/SaveStore';
 import { ThemeRuntime } from '../dungeon/MapThemes';
 
 /**
  * BootLoading —— 冷启动短加载（J1）
  * 读档 + 内置配置包就绪后再进大厅。配置校验失败可重试。
  * 远程包可选（PACK_URL + LOCK_REMOTE）；失败 / unchanged 不阻断进大厅。
+ * 玩家云可选（CloudSync.BASE_URL）；失败不阻断。
  */
 export class BootLoading {
     private static _done = false;
@@ -88,6 +91,21 @@ export class BootLoading {
                         tip.string = `配置已是最新 v${ConfigStore.version}`;
                     } else if (r === 'failed') {
                         tip.string = '远程配置不可用，已用内置包';
+                    }
+                },
+            },
+            {
+                text: CloudSync.enabled ? '同步云存档' : '跳过云存档',
+                run: async () => {
+                    const local = GameManager.instance?.save as any;
+                    const r = await CloudSync.bootstrap(local);
+                    if (r === 'ok' && CloudSync.ready) {
+                        if (GameManager.instance) {
+                            GameManager.instance.applyRemoteSave(SaveStore.load());
+                        }
+                        tip.string = '云存档已就绪';
+                    } else if (r === 'failed') {
+                        tip.string = '云同步暂不可用，已用本机存档';
                     }
                 },
             },

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * CMS mock server — K8 auth · K9 CRUD · K10 upload · K11 publish · K12 audit/rollback · pack validate/latest
+ * CMS mock server — K8–K12 content + player cloud (auth/sync/redeem/events)
  * Default: http://localhost:8787
  * Login: admin / wxgame-dev
- * Not a real CDN — published packs under data/published/
+ * Not a real CDN / WeChat code2session — published packs under data/published/
  */
 
 import http from 'http';
@@ -20,6 +20,12 @@ import {
   publishDraft, loadPublishedPack, listPublishedVersions, loadPublishedVersion, ensureInitialPublish, readLatestPointer,
 } from './publish.mjs';
 import { appendAudit, listAudit, rollbackToVersion } from './audit.mjs';
+import {
+  findOrCreateByCode, getPlayer, listPlayers, syncSave, recordRedeem, appendEvents,
+} from './players.mjs';
+import {
+  listCodes, getCode, upsertCode, deleteCode, normalizeCode, applyRewardsToSave,
+} from './redeems.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8787);
@@ -28,11 +34,13 @@ const ADMIN_PASS = process.env.CMS_PASS || 'wxgame-dev';
 
 /** @type {Map<string, { user: string, at: number }>} */
 const sessions = new Map();
+/** @type {Map<string, { playerId: string, at: number }>} */
+const playerSessions = new Map();
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
 }
 
 function send(res, status, body) {
@@ -71,8 +79,23 @@ function requireAuth(req, res) {
   return sessions.get(token);
 }
 
-function newToken() {
-  return `tok_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+function requirePlayer(req, res) {
+  const token = tokenFrom(req);
+  if (!token || !playerSessions.has(token)) {
+    send(res, 401, { error: 'unauthorized' });
+    return null;
+  }
+  const sess = playerSessions.get(token);
+  const player = getPlayer(sess.playerId);
+  if (!player) {
+    send(res, 401, { error: 'player gone' });
+    return null;
+  }
+  return { token, player };
+}
+
+function newToken(prefix = 'tok') {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function validatePackFile(pack) {
@@ -354,6 +377,205 @@ async function handler(req, res) {
       return;
     }
 
+    // ── Player cloud (client Bearer = player token) ──
+    if (req.method === 'POST' && pathname === '/api/player/auth') {
+      const body = await readBody(req);
+      const code = body && body.code;
+      if (!code || typeof code !== 'string') {
+        send(res, 400, { error: 'code required (wx.login)' });
+        return;
+      }
+      const player = findOrCreateByCode(code);
+      const token = newToken('ptok');
+      playerSessions.set(token, { playerId: player.id, at: Date.now() });
+      send(res, 200, {
+        token,
+        playerId: player.id,
+        openid: player.openid,
+        hasSave: !!player.save,
+      });
+      return;
+    }
+
+    if (req.method === 'GET' && pathname === '/api/player/me') {
+      const ctx = requirePlayer(req, res);
+      if (!ctx) return;
+      const { player } = ctx;
+      send(res, 200, {
+        playerId: player.id,
+        openid: player.openid,
+        updatedAt: player.updatedAt,
+        lastSyncAt: player.lastSyncAt,
+        save: player.save,
+      });
+      return;
+    }
+
+    if (req.method === 'POST' && pathname === '/api/player/sync') {
+      const ctx = requirePlayer(req, res);
+      if (!ctx) return;
+      const body = await readBody(req);
+      if (!body || !body.save) {
+        send(res, 400, { error: 'save required' });
+        return;
+      }
+      const out = syncSave(ctx.player.id, body.save, { nickName: body.nickName });
+      if (out.error) send(res, 400, out);
+      else {
+        send(res, 200, {
+          ok: true,
+          conflict: false,
+          playerId: out.player.id,
+          updatedAt: out.player.updatedAt,
+          save: out.player.save,
+        });
+      }
+      return;
+    }
+
+    if (req.method === 'POST' && pathname === '/api/player/redeem') {
+      const ctx = requirePlayer(req, res);
+      if (!ctx) return;
+      const body = await readBody(req);
+      const code = normalizeCode(body && body.code);
+      if (!code) {
+        send(res, 400, { error: '请输入兑换码' });
+        return;
+      }
+      const def = getCode(code);
+      if (!def || def.enabled === false) {
+        send(res, 404, { ok: false, error: '兑换码无效' });
+        return;
+      }
+      let save = ctx.player.save ? JSON.parse(JSON.stringify(ctx.player.save)) : {
+        version: 2,
+        currency: { soul: 50, totalRunCoins: 0 },
+        progress: { highestFloor: 0, highestScore: 0, totalKills: 0, totalRuns: 0, clearCount: 0, bestClearTime: 0, stagesCleared: [], stageStars: {}, highestEndlessFloor: 0 },
+        unlocks: { weapons: ['sword'], characters: ['warrior'], talents: [] },
+        talents: {},
+        shopPurchases: { maxHp: 0, atk: 0, def: 0, moveSpeed: 0 },
+        codex: { themes: [], enemies: [], weapons: [] },
+        selectedCharacter: 'warrior',
+        selectedWeapon: 'sword',
+        selectedDifficulty: 'normal',
+        settings: { sfxVolume: 1, bgmVolume: 0.6, vibration: true },
+        redeemedCodes: [],
+        stash: {},
+        flags: {},
+      };
+      if (!Array.isArray(save.redeemedCodes)) save.redeemedCodes = [];
+      if (save.redeemedCodes.indexOf(code) >= 0) {
+        send(res, 409, { ok: false, error: '该兑换码已使用' });
+        return;
+      }
+      const granted = applyRewardsToSave(save, def.rewards);
+      save.redeemedCodes.push(code);
+      syncSave(ctx.player.id, save, {});
+      const at = new Date().toISOString();
+      recordRedeem(ctx.player.id, { code, title: def.title, rewards: granted, at });
+      send(res, 200, {
+        ok: true,
+        title: def.title,
+        rewards: granted,
+        message: `已兑换 ${def.title}`,
+        save,
+        updatedAt: at,
+      });
+      return;
+    }
+
+    if (req.method === 'POST' && pathname === '/api/player/events') {
+      const ctx = requirePlayer(req, res);
+      if (!ctx) return;
+      const body = await readBody(req);
+      const events = body && body.events;
+      const out = appendEvents(ctx.player.id, events);
+      if (out.error) send(res, 400, out);
+      else send(res, 200, { ok: true, count: out.count });
+      return;
+    }
+
+    // ── Admin: players + redeems CRUD ──
+    if (req.method === 'GET' && pathname === '/api/players') {
+      if (!requireAuth(req, res)) return;
+      send(res, 200, { players: listPlayers() });
+      return;
+    }
+
+    const playerMatch = /^\/api\/players\/([a-zA-Z0-9_]+)$/.exec(pathname);
+    if (req.method === 'GET' && playerMatch) {
+      if (!requireAuth(req, res)) return;
+      const p = getPlayer(playerMatch[1]);
+      if (!p) send(res, 404, { error: 'not found' });
+      else send(res, 200, { player: p });
+      return;
+    }
+
+    const playerRedeemsMatch = /^\/api\/players\/([a-zA-Z0-9_]+)\/redeems$/.exec(pathname);
+    if (req.method === 'GET' && playerRedeemsMatch) {
+      if (!requireAuth(req, res)) return;
+      const p = getPlayer(playerRedeemsMatch[1]);
+      if (!p) send(res, 404, { error: 'not found' });
+      else send(res, 200, { redeems: p.redeems || [] });
+      return;
+    }
+
+    const playerEventsMatch = /^\/api\/players\/([a-zA-Z0-9_]+)\/events$/.exec(pathname);
+    if (req.method === 'GET' && playerEventsMatch) {
+      if (!requireAuth(req, res)) return;
+      const p = getPlayer(playerEventsMatch[1]);
+      if (!p) send(res, 404, { error: 'not found' });
+      else send(res, 200, { events: p.events || [] });
+      return;
+    }
+
+    if (req.method === 'GET' && pathname === '/api/redeems') {
+      if (!requireAuth(req, res)) return;
+      send(res, 200, { codes: listCodes() });
+      return;
+    }
+
+    if (req.method === 'POST' && pathname === '/api/redeems') {
+      if (!requireAuth(req, res)) return;
+      const body = await readBody(req);
+      const out = upsertCode(body || {});
+      if (out.error) send(res, 400, out);
+      else {
+        const sess = sessions.get(tokenFrom(req));
+        appendAudit({ actor: sess?.user || 'admin', action: 'redeem.upsert', detail: { code: out.code.code } });
+        send(res, 200, out);
+      }
+      return;
+    }
+
+    const redeemMatch = /^\/api\/redeems\/([A-Z0-9]+)$/i.exec(pathname);
+    if (redeemMatch) {
+      const code = normalizeCode(redeemMatch[1]);
+      if (req.method === 'PATCH') {
+        if (!requireAuth(req, res)) return;
+        const body = await readBody(req);
+        const out = upsertCode({ ...(body || {}), code });
+        if (out.error) send(res, 400, out);
+        else {
+          const sess = sessions.get(tokenFrom(req));
+          appendAudit({ actor: sess?.user || 'admin', action: 'redeem.patch', detail: { code } });
+          send(res, 200, out);
+        }
+        return;
+      }
+      if (req.method === 'DELETE') {
+        if (!requireAuth(req, res)) return;
+        const out = deleteCode(code);
+        if (out.error) send(res, 404, out);
+        else {
+          const sess = sessions.get(tokenFrom(req));
+          appendAudit({ actor: sess?.user || 'admin', action: 'redeem.delete', detail: { code } });
+          send(res, 200, out);
+        }
+        return;
+      }
+    }
+
     if (req.method === 'GET' && (pathname === '/' || pathname.endsWith('.html') || pathname.endsWith('.css') || pathname.endsWith('.js'))) {
       serveStatic(req, res, pathname);
       return;
@@ -373,6 +595,8 @@ http.createServer(handler).listen(PORT, () => {
   console.log(`[cms-mock] login ${ADMIN_USER} / ${ADMIN_PASS}`);
   console.log(`[cms-mock] upload POST /api/assets → GET /media/:id`);
   console.log(`[cms-mock] publish POST /api/pack/publish → GET /api/pack/latest`);
+  console.log(`[cms-mock] player POST /api/player/auth · sync · redeem · events`);
+  console.log(`[cms-mock] admin GET /api/players · /api/redeems`);
   if (bootPub.seeded) console.log(`[cms-mock] seeded publish v${bootPub.version}`);
   if (bootPub.error) console.warn(`[cms-mock] initial publish skipped: ${bootPub.error}`);
 });

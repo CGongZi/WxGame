@@ -118,3 +118,47 @@ Rejects other extensions (e.g. `.exe`) even if `Content-Type` is spoofed.
 
 - Empty `ConfigRemote.PACK_URL` → no network (default for review builds). Leave empty through K12; set only for deliberate K13/K14 local preview.
 - Fetch / validate failure → keep builtin; never hard-fail boot after builtin loaded.
+
+## Player cloud (feat/player-cloud-admin)
+
+Mock only — no real WeChat `code2session`. Client `CloudSync.BASE_URL` empty = offline.
+
+### `POST /api/player/auth`
+
+Body: `{ "code": "<wx.login code>" }`  
+→ `{ token, playerId, openid, hasSave }` — client Bearer for player routes.
+
+### `GET /api/player/me`
+
+Player auth. → `{ playerId, openid, save, updatedAt, lastSyncAt }`
+
+### `POST /api/player/sync`
+
+Player auth. Body: `{ save, nickName? }` — last-write-wins full SaveData upsert.  
+→ `{ ok, updatedAt, save }`
+
+### `POST /api/player/redeem`
+
+Player auth. Body: `{ code }`  
+→ `{ ok, title, rewards, save }` or 404/409
+
+### `POST /api/player/events`
+
+Player auth. Body: `{ events: [{ type, at?, payload? }] }` (capped server-side)
+
+### Admin (CMS Bearer)
+
+| Method | Path | Notes |
+|--------|------|--------|
+| GET | `/api/players` | list summaries |
+| GET | `/api/players/:id` | full player + save |
+| GET | `/api/players/:id/redeems` | redeem history |
+| GET | `/api/players/:id/events` | event stream |
+| GET | `/api/redeems` | code catalog |
+| POST | `/api/redeems` | upsert `{ code, title, rewards, enabled? }` |
+| PATCH | `/api/redeems/:code` | upsert |
+| DELETE | `/api/redeems/:code` | remove |
+
+Smoke: `npm run smoke:player` (server must be up).
+Client: `CloudSync.configure({ url: 'http://127.0.0.1:8787' })` for local; ship with `BASE_URL === ''`.
+

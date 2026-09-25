@@ -154,6 +154,57 @@
       <div class="status" id="uploadStatus">支持图片 / 音效 / JSON，≤2MB。包内只存 url/id。</div>
       <pre id="assetList" style="margin-top:10px;font-size:12px;color:var(--muted);white-space:pre-wrap"></pre>
     </section>
+
+    <section class="card hidden" id="playersCard" style="margin-top:16px">
+      <div class="row">
+        <div>
+          <label>玩家云存档</label>
+          <div class="actions" style="margin:0">
+            <button class="secondary" id="btnPlayers" type="button">刷新列表</button>
+          </div>
+        </div>
+        <div>
+          <label>选中玩家</label>
+          <select id="playerSel"></select>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="secondary" id="btnPlayerDetail" type="button">查看存档</button>
+        <button class="secondary" id="btnPlayerRedeems" type="button">兑换记录</button>
+        <button class="secondary" id="btnPlayerEvents" type="button">事件流水</button>
+      </div>
+      <div class="status" id="playersStatus">登录后可查看 /api/players</div>
+      <pre id="playersOut" style="margin-top:10px;font-size:12px;color:var(--muted);white-space:pre-wrap;max-height:280px;overflow:auto"></pre>
+    </section>
+
+    <section class="card hidden" id="redeemsCard" style="margin-top:16px">
+      <div class="row">
+        <div>
+          <label>兑换码管理</label>
+          <div class="actions" style="margin:0">
+            <button class="secondary" id="btnRedeems" type="button">刷新</button>
+          </div>
+        </div>
+        <div>
+          <label>码</label>
+          <input id="redeemCode" placeholder="NEWCODE" />
+        </div>
+        <div>
+          <label>标题</label>
+          <input id="redeemTitle" placeholder="活动礼包" />
+        </div>
+        <div>
+          <label>灵魂数</label>
+          <input id="redeemSoul" type="number" value="50" />
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btnRedeemSave" type="button">保存/新建</button>
+        <button class="danger" id="btnRedeemDel" type="button">删除码</button>
+      </div>
+      <div class="status" id="redeemsStatus">种子码与客户端 #186 一致；云开启后以服务端为准</div>
+      <pre id="redeemsOut" style="margin-top:10px;font-size:12px;color:var(--muted);white-space:pre-wrap"></pre>
+    </section>
   </main>
   <script>
     const state = { token: localStorage.getItem('cmsToken') || '', kind: 'weapons' };
@@ -186,8 +237,10 @@
       $('loginCard').classList.toggle('hidden', loggedIn);
       $('editorCard').classList.toggle('hidden', !loggedIn);
       $('uploadCard').classList.toggle('hidden', !loggedIn);
+      $('playersCard').classList.toggle('hidden', !loggedIn);
+      $('redeemsCard').classList.toggle('hidden', !loggedIn);
       $('headerMeta').textContent = loggedIn
-        ? 'Bearer · /api/pack/latest · /media/:id'
+        ? 'CMS · players · redeems · /api/pack/latest'
         : '未登录';
     }
 
@@ -378,6 +431,8 @@
         showApp(true);
         fillKinds();
         await loadKind();
+        await refreshPlayers().catch(() => {});
+        await refreshRedeems().catch(() => {});
       } catch (e) {
         setStatus($('loginStatus'), String(e.message || e), 'bad');
       }
@@ -495,6 +550,81 @@
       }
     };
 
+    async function refreshPlayers() {
+      const data = await api('GET', '/api/players');
+      const list = data.players || [];
+      const sel = $('playerSel');
+      const prev = sel.value;
+      sel.innerHTML = '';
+      list.forEach((p) => {
+        const o = document.createElement('option');
+        o.value = p.id;
+        o.textContent = `${p.id}  soul=${p.soul ?? '-'}  floor=${p.highestFloor ?? '-'}  兑${p.redeemCount}`;
+        sel.appendChild(o);
+      });
+      if (prev) sel.value = prev;
+      $('playersOut').textContent = list.length
+        ? list.map((p) => JSON.stringify(p)).join('\n')
+        : '(暂无玩家；客户端 CloudSync.BASE_URL 指向本机后登录会创建)';
+      setStatus($('playersStatus'), `共 ${list.length} 名玩家`, 'ok');
+    }
+
+    async function showPlayerSlice(kind) {
+      const id = $('playerSel').value;
+      if (!id) {
+        setStatus($('playersStatus'), '先选玩家', 'bad');
+        return;
+      }
+      const path = kind === 'detail'
+        ? '/api/players/' + id
+        : '/api/players/' + id + '/' + kind;
+      const data = await api('GET', path);
+      $('playersOut').textContent = JSON.stringify(data, null, 2);
+      setStatus($('playersStatus'), id + ' · ' + kind, 'ok');
+    }
+
+    $('btnPlayers').onclick = () => refreshPlayers().catch((e) => setStatus($('playersStatus'), String(e.message || e), 'bad'));
+    $('btnPlayerDetail').onclick = () => showPlayerSlice('detail').catch((e) => setStatus($('playersStatus'), String(e.message || e), 'bad'));
+    $('btnPlayerRedeems').onclick = () => showPlayerSlice('redeems').catch((e) => setStatus($('playersStatus'), String(e.message || e), 'bad'));
+    $('btnPlayerEvents').onclick = () => showPlayerSlice('events').catch((e) => setStatus($('playersStatus'), String(e.message || e), 'bad'));
+
+    async function refreshRedeems() {
+      const data = await api('GET', '/api/redeems');
+      const codes = data.codes || [];
+      $('redeemsOut').textContent = codes.map((c) => `${c.code}  ${c.enabled === false ? 'OFF' : 'ON'}  ${c.title}  ${JSON.stringify(c.rewards)}`).join('\n');
+      setStatus($('redeemsStatus'), `共 ${codes.length} 个码`, 'ok');
+    }
+
+    $('btnRedeems').onclick = () => refreshRedeems().catch((e) => setStatus($('redeemsStatus'), String(e.message || e), 'bad'));
+    $('btnRedeemSave').onclick = async () => {
+      try {
+        const code = $('redeemCode').value.trim();
+        const title = $('redeemTitle').value.trim() || code;
+        const soul = Number($('redeemSoul').value) || 0;
+        const out = await api('POST', '/api/redeems', {
+          code,
+          title,
+          enabled: true,
+          rewards: soul > 0 ? [{ kind: 'soul', amount: soul }] : [{ kind: 'soul', amount: 1 }],
+        });
+        setStatus($('redeemsStatus'), `已保存 ${out.code.code}`, 'ok');
+        await refreshRedeems();
+      } catch (e) {
+        setStatus($('redeemsStatus'), String(e.message || e), 'bad');
+      }
+    };
+    $('btnRedeemDel').onclick = async () => {
+      const code = $('redeemCode').value.trim();
+      if (!code || !confirm('删除 ' + code + '？')) return;
+      try {
+        await api('DELETE', '/api/redeems/' + encodeURIComponent(code.toUpperCase()));
+        setStatus($('redeemsStatus'), '已删除 ' + code, 'ok');
+        await refreshRedeems();
+      } catch (e) {
+        setStatus($('redeemsStatus'), String(e.message || e), 'bad');
+      }
+    };
+
     (async () => {
       fillKinds();
       if (!state.token) { showApp(false); return; }
@@ -503,6 +633,8 @@
         showApp(true);
         await loadKind();
         await refreshAssets().catch(() => {});
+        await refreshPlayers().catch(() => {});
+        await refreshRedeems().catch(() => {});
       } catch {
         state.token = '';
         localStorage.removeItem('cmsToken');

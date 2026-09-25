@@ -15,6 +15,8 @@ export interface WxUserInfo {
 
 export class WechatService {
     private static _openid: string = '';
+    private static _loginCode: string = '';
+    private static _nickName: string = '';
     private static _rewardedAd: any = null;  // wx.RewardedVideoAd
 
     static hasOpenDataRank(): boolean {
@@ -27,13 +29,19 @@ export class WechatService {
     // ════════════════════════════════
 
     static async login(): Promise<string> {
+        if (typeof wx === 'undefined' || !wx.login) {
+            if (!WechatService._loginCode) {
+                WechatService._loginCode = `editor_${Date.now().toString(36)}`;
+            }
+            return WechatService._loginCode;
+        }
         return new Promise((resolve, reject) => {
             wx.login({
-                success: (res) => {
-                    // 实际项目中这里会把 code 发给服务器换 openid
-                    // MVP 阶段用 code 作为临时 ID
-                    WechatService._openid = res.code;
-                    resolve(res.code);
+                success: (res: { code?: string }) => {
+                    // code 交给 CloudSync → /api/player/auth 换 openid（mock）
+                    WechatService._loginCode = res.code || '';
+                    WechatService._openid = WechatService._openid || WechatService._loginCode;
+                    resolve(WechatService._loginCode);
                 },
                 fail: reject,
             });
@@ -41,6 +49,15 @@ export class WechatService {
     }
 
     static get openid(): string { return WechatService._openid; }
+    static get loginCode(): string { return WechatService._loginCode; }
+    static get nickName(): string { return WechatService._nickName; }
+
+    static setOpenid(id: string) { WechatService._openid = id || ''; }
+    static setMockLoginCode(code: string) {
+        WechatService._loginCode = code;
+        if (!WechatService._openid) WechatService._openid = code;
+    }
+    static setNickName(name: string) { WechatService._nickName = name || ''; }
 
     // ════════════════════════════════
     //  存档

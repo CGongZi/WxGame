@@ -9,6 +9,7 @@
     "validate:seed": "node scripts/validate-pack.mjs fixtures/seed-draft.json",
     "export:builtin": "node scripts/export-builtin-pack.mjs",
     "smoke:k14": "node scripts/k14-smoke.mjs",
+    "smoke:player": "node scripts/player-cloud-smoke.mjs",
     "test:g7": "node scripts/g7-save-roundtrip.mjs",
     "start": "node server/mock-server.mjs",
     "mock": "node server/mock-server.mjs"

@@ -4,6 +4,7 @@ declare const wx: any;
 
 /**
  * SaveStore —— 读写封装（wx / localStorage）
+ * 云同步由 GameManager.persist → CloudSync.schedulePush 触发（避免循环依赖）
  */
 export class SaveStore {
     static load(): SaveData {

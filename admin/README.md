@@ -78,7 +78,22 @@ admin/
 | K12 audit / rollback | ✅ mock (`/api/audit`, `/api/pack/rollback`) |
 | K13 client CDN URL | ✅ `PACK_URL` + version skip + `LOCK_REMOTE` |
 | K14 e2e weapon damage | ✅ CMS `smoke:k14` + client configure path（真机局内手测） |
+| Player cloud (auth/sync/redeem/events) | ✅ mock APIs + admin UI + `CloudSync`（默认 `BASE_URL=''`） |
+| Production WeChat code2session / CDN | ❌ later |
 
 ## Fail-soft rule
 
 Clients always load builtin first. Remote failure must not block lobby. See cms-contract.md.
+
+## Player cloud (local mock)
+
+```bash
+cd admin
+npm start                 # http://127.0.0.1:8787
+npm run smoke:player      # auth → sync → redeem → admin list
+```
+
+- Admin UI: 登录后「玩家云存档」「兑换码管理」两块
+- Client: `CloudSync.configure({ url: 'http://127.0.0.1:8787' })` 仅联调；提审保持 `BASE_URL === ''`
+- 非真微信 `code2session`：用 `wx.login` code 在服务端哈希成 openid
+

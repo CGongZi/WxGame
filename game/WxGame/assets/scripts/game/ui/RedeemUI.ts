@@ -119,15 +119,19 @@ export class RedeemUI {
 
         makeButton(panel, '兑换', 0, backY + 52, () => {
             const raw = (edit.string || textLab.string || '').trim();
-            const r = GameManager.instance?.tryRedeemCode(raw);
-            if (!r?.ok) {
-                tipLbl.string = r?.reason ?? '兑换失败';
-                tipLbl.color = UiTone.warn;
-                return;
-            }
-            tipLbl.string = '';
-            RedeemUI._showResult(canvas, r.title ?? '兑换成功', r.rewards ?? []);
-            RedeemUI._close(root);
+            tipLbl.string = '兑换中…';
+            tipLbl.color = UiTone.muted;
+            void (async () => {
+                const r = await GameManager.instance?.tryRedeemCodeAsync(raw);
+                if (!r?.ok) {
+                    tipLbl.string = r?.reason ?? '兑换失败';
+                    tipLbl.color = UiTone.warn;
+                    return;
+                }
+                tipLbl.string = '';
+                RedeemUI._showResult(canvas, r.title ?? '兑换成功', r.rewards ?? []);
+                RedeemUI._close(root);
+            })();
         }, { w: 160, h: 42, color: UiTone.btnGood, fontSize: 16 });
 
         makeButton(panel, '返回', 0, backY, () => {

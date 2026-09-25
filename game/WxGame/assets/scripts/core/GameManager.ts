@@ -2,7 +2,7 @@ import { _decorator, Component, director, profiler } from 'cc';
 import { GameConfig } from './GameConfig';
 import { RunState, WeaponData, GameSettings } from './types';
 import { eventBus, GameEvents } from './EventBus';
-import { SaveData, DEFAULT_SAVE } from './SaveData';
+import { SaveData, DEFAULT_SAVE, migrateSave } from './SaveData';
 import { SaveStore } from './SaveStore';
 import { PlayerStats } from './PlayerStats';
 import {
@@ -11,6 +11,7 @@ import {
 } from './TalentData';
 import { getShopOffer } from './ShopData';
 import { findRedeemCode, normalizeRedeemCode, type RedeemReward } from './RedeemCodes';
+import { CloudSync } from './CloudSync';
 import { listCharacters as configCharacters, defaultCharacter, getCharacter } from './CharacterData';
 import { GameFlow } from './GameFlow';
 import { ConfigStore } from './ConfigStore';
@@ -612,6 +613,15 @@ export class GameManager extends Component {
         };
         this._lastDeath = report;
         eventBus.emit(GameEvents.PLAYER_DIED, report);
+        void CloudSync.uploadEvents([{
+            type: 'run_death',
+            at: new Date().toISOString(),
+            payload: {
+                floor, score: finalScore, kills, coins, soulEarned,
+                mode: this._runConfig?.mode,
+                stageId: this._runConfig?.stageId,
+            },
+        }]);
     }
 
     /** 死亡折算：系数读 ConfigStore.economy */
@@ -625,6 +635,43 @@ export class GameManager extends Component {
 
     persist() {
         SaveStore.save(this._save);
+        CloudSync.schedulePush(this._save);
+    }
+
+    /** 用云端返回的存档覆盖本机 */
+    applyRemoteSave(raw: SaveData) {
+        this._save = migrateSave(raw);
+        this._applyTalentsToStats();
+        this._emitCharacter();
+        SaveStore.save(this._save);
+        eventBus.emit('soul-changed', { soul: this._save.currency.soul });
+        eventBus.emit('stash-changed', {});
+    }
+
+    /**
+     * 兑换码：云开启走服务端，否则本地 #186 表。
+     */
+    async tryRedeemCodeAsync(raw: string): Promise<{
+        ok: boolean;
+        reason?: string;
+        title?: string;
+        rewards?: RedeemReward[];
+        message?: string;
+    }> {
+        const code = normalizeRedeemCode(raw);
+        if (!code) return { ok: false, reason: '请输入兑换码' };
+        if (CloudSync.enabled) {
+            const r = await CloudSync.redeem(code);
+            if (!r.ok) return { ok: false, reason: r.reason || '兑换失败' };
+            if (r.save) this.applyRemoteSave(r.save as SaveData);
+            return {
+                ok: true,
+                title: r.title,
+                rewards: r.rewards,
+                message: r.message,
+            };
+        }
+        return this.tryRedeemCode(raw);
     }
 
     /** 新手引导完成（首次大厅） */
