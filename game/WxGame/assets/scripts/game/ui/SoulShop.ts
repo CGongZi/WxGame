@@ -220,88 +220,59 @@ export class SoulShop {
             const helperY = btnY + btnH / 2 + 14;
             const isChar = offer.kind === 'character';
 
-            // 角色：左上技能图标 + 右侧多行简介（不再用顶栏一行绿条）
-            let skillBlockH = 0;
+            // 立绘：角色页与标题并排（省纵向空间）；其它商品仍置顶居中
+            const thumb = new Node('Thumb');
+            thumb.layer = Layers.Enum.UI_2D;
+            thumb.setParent(shell);
+            if (isChar) {
+                thumb.setPosition(-dw / 2 + 36, gh / 2 - 36, 0);
+            } else {
+                thumb.setPosition(0, gh / 2 - 28, 0);
+            }
+            thumb.addComponent(UITransform).setContentSize(56, 56);
+            const tg = thumb.addComponent(Graphics);
+            tg.fillColor = new Color(22, 18, 14, 255);
+            tg.roundRect(-26, -26, 52, 52, 8); tg.fill();
+            tg.strokeColor = new Color(140, 120, 90, 120);
+            tg.lineWidth = 1.2;
+            tg.roundRect(-26, -26, 52, 52, 8); tg.stroke();
+            const art = new Node('Art');
+            art.layer = Layers.Enum.UI_2D;
+            art.setParent(thumb);
+            art.setPosition(0, 0, 0);
+            art.addComponent(UITransform).setContentSize(48, 48);
+            art.setScale(0.4, 0.4, 1);
+            SoulShop._paintThumb(art.addComponent(Graphics), offer);
+
+            const nameY = isChar ? gh / 2 - 24 : gh / 2 - 62;
+            const nameCx = isChar ? (-dw / 2 + 72 + (dw - 88) / 2) : 0;
+            const nameW = isChar ? dw - 88 : dw - 24;
+            const nameLbl = SoulShop._lbl(
+                shell, offer.name, nameCx, nameY, 15, new Color(255, 240, 220, 255), nameW,
+            );
+            if (isChar) nameLbl.getComponent(Label)!.horizontalAlign = Label.HorizontalAlign.LEFT;
+            const priceLbl = SoulShop._lbl(
+                shell,
+                state.owned ? '已拥有' : `售价  ${offer.cost} 魂`,
+                nameCx, nameY - 18, 12,
+                state.owned ? new Color(140, 200, 140, 255) : new Color(230, 190, 120, 255),
+                nameW,
+            );
+            if (isChar) priceLbl.getComponent(Label)!.horizontalAlign = Label.HorizontalAlign.LEFT;
+
+            const { lines, helper } = SoulShop._detailBlocks(offer);
+            // 角色：介绍从立绘下方起；技能固定贴底注上方，介绍不得压入技能区
+            const lineTop = isChar ? gh / 2 - 72 : nameY - 38;
+            const lineStep = 14;
+            let skillDescCount = 0;
             if (isChar) {
                 const ch = getCharacter(offer.characterId);
                 const sk = skillFor(ch?.id ?? offer.characterId);
-                const skillBtn = new Node('SkillBtn');
-                skillBtn.layer = Layers.Enum.UI_2D;
-                skillBtn.setParent(shell);
-                skillBtn.setPosition(-dw / 2 + 28, gh / 2 - 28, 0);
-                skillBtn.addComponent(UITransform).setContentSize(40, 40);
-                const sg = skillBtn.addComponent(Graphics);
-                const [cr, cgCol, cb] = sk.color;
-                sg.fillColor = new Color(28, 22, 18, 255);
-                sg.circle(0, 0, 18); sg.fill();
-                sg.fillColor = new Color(cr, cgCol, cb, 55);
-                sg.circle(0, 0, 16); sg.fill();
-                sg.strokeColor = new Color(cr, cgCol, cb, 200);
-                sg.lineWidth = 1.6;
-                sg.circle(0, 0, 16); sg.stroke();
-                SoulShop._lbl(skillBtn, sk.emoji, 0, 1, 16, new Color(255, 245, 230, 255), 36);
-                SoulShop._lbl(skillBtn, '技', 0, -22, 9, new Color(200, 180, 140, 220), 36);
-
-                const infoW = dw - 78;
-                const infoCx = -dw / 2 + 56 + infoW / 2;
-                const titleY0 = gh / 2 - 16;
-                const titleLbl = SoulShop._lbl(
-                    shell,
-                    `${sk.name} · CD ${sk.cooldown}s`,
-                    infoCx, titleY0, 12,
-                    new Color(255, 220, 160, 255), infoW,
-                );
-                titleLbl.getComponent(Label)!.horizontalAlign = Label.HorizontalAlign.LEFT;
-                const descLines = SoulShop._wrapText(sk.desc || '', 15);
-                descLines.slice(0, 3).forEach((t, i) => {
-                    const dl = SoulShop._lbl(
-                        shell, t,
-                        infoCx, titleY0 - 15 - i * 13, 11,
-                        new Color(190, 175, 150, 255), infoW,
-                    );
-                    dl.getComponent(Label)!.horizontalAlign = Label.HorizontalAlign.LEFT;
-                });
-                skillBlockH = 20 + Math.min(3, Math.max(1, descLines.length)) * 13;
+                skillDescCount = Math.min(2, Math.max(1, SoulShop._wrapText(sk.desc || '', 16).length));
             }
-
-            // 立绘：角色页顶区改放技能简介（右侧宫格已有立绘）；其它商品仍置顶
-            if (!isChar) {
-                const thumb = new Node('Thumb');
-                thumb.layer = Layers.Enum.UI_2D;
-                thumb.setParent(shell);
-                thumb.setPosition(0, gh / 2 - 28, 0);
-                thumb.addComponent(UITransform).setContentSize(56, 56);
-                const tg = thumb.addComponent(Graphics);
-                tg.fillColor = new Color(22, 18, 14, 255);
-                tg.roundRect(-26, -26, 52, 52, 8); tg.fill();
-                tg.strokeColor = new Color(140, 120, 90, 120);
-                tg.lineWidth = 1.2;
-                tg.roundRect(-26, -26, 52, 52, 8); tg.stroke();
-                const art = new Node('Art');
-                art.layer = Layers.Enum.UI_2D;
-                art.setParent(thumb);
-                art.setPosition(0, 0, 0);
-                art.addComponent(UITransform).setContentSize(48, 48);
-                art.setScale(0.4, 0.4, 1);
-                SoulShop._paintThumb(art.addComponent(Graphics), offer);
-            }
-
-            const nameY = isChar
-                ? gh / 2 - 28 - Math.max(skillBlockH, 40) - 10
-                : gh / 2 - 62;
-            SoulShop._lbl(shell, offer.name, 0, nameY, 15, new Color(255, 240, 220, 255), dw - 24);
-            SoulShop._lbl(
-                shell,
-                state.owned ? '已拥有' : `售价  ${offer.cost} 魂`,
-                0, nameY - 18, 12,
-                state.owned ? new Color(140, 200, 140, 255) : new Color(230, 190, 120, 255),
-                dw - 24,
-            );
-
-            const { lines, helper } = SoulShop._detailBlocks(offer);
-            const lineTop = nameY - 38;
-            const lineStep = 15;
-            const lineFloor = helperY + 12;
+            const skillBlockH = isChar ? (18 + skillDescCount * 12) : 0;
+            const skillTop = isChar ? helperY + skillBlockH + 8 : 0;
+            const lineFloor = isChar ? skillTop + 10 : helperY + 12;
             lines.forEach((line, i) => {
                 const y = lineTop - i * lineStep;
                 if (y < lineFloor) return;
@@ -310,6 +281,48 @@ export class SoulShop {
                     line.color ?? new Color(190, 175, 150, 255), dw - 28,
                 );
             });
+
+            // 角色技能：人物介绍下方、底注上方（图标 + 名/CD + 简介）
+            if (isChar) {
+                const ch = getCharacter(offer.characterId);
+                const sk = skillFor(ch?.id ?? offer.characterId);
+                const skillBtn = new Node('SkillBtn');
+                skillBtn.layer = Layers.Enum.UI_2D;
+                skillBtn.setParent(shell);
+                skillBtn.setPosition(-dw / 2 + 26, skillTop - 4, 0);
+                skillBtn.addComponent(UITransform).setContentSize(36, 36);
+                const sg = skillBtn.addComponent(Graphics);
+                const [cr, cgCol, cb] = sk.color;
+                sg.fillColor = new Color(28, 22, 18, 255);
+                sg.circle(0, 0, 16); sg.fill();
+                sg.fillColor = new Color(cr, cgCol, cb, 55);
+                sg.circle(0, 0, 14); sg.fill();
+                sg.strokeColor = new Color(cr, cgCol, cb, 200);
+                sg.lineWidth = 1.5;
+                sg.circle(0, 0, 14); sg.stroke();
+                SoulShop._lbl(skillBtn, sk.emoji, 0, 1, 14, new Color(255, 245, 230, 255), 32);
+                SoulShop._lbl(skillBtn, '技', 0, -20, 9, new Color(200, 180, 140, 220), 32);
+
+                const infoW = dw - 72;
+                const infoCx = -dw / 2 + 50 + infoW / 2;
+                const titleLbl = SoulShop._lbl(
+                    shell,
+                    `${sk.name} · CD ${sk.cooldown}s`,
+                    infoCx, skillTop, 12,
+                    new Color(255, 220, 160, 255), infoW,
+                );
+                titleLbl.getComponent(Label)!.horizontalAlign = Label.HorizontalAlign.LEFT;
+                const descLines = SoulShop._wrapText(sk.desc || '', 16);
+                descLines.slice(0, 2).forEach((t, i) => {
+                    const dl = SoulShop._lbl(
+                        shell, t,
+                        infoCx, skillTop - 14 - i * 12, 11,
+                        new Color(190, 175, 150, 255), infoW,
+                    );
+                    dl.getComponent(Label)!.horizontalAlign = Label.HorizontalAlign.LEFT;
+                });
+            }
+
             if (helper) {
                 SoulShop._lbl(shell, helper, 0, helperY, 11, new Color(165, 150, 130, 255), dw - 28);
             }
@@ -510,7 +523,7 @@ export class SoulShop {
                 const one = desc.length > 28 ? `${desc.slice(0, 27)}…` : desc;
                 lines.push({ text: one, color: body });
             }
-            // 风格 + 专属（技能简介已画在左上图标旁）
+            // 风格 + 专属（技能块画在介绍下方）
             const tag = SoulShop._styleTag(ch.base);
             lines.push(
                 { text: `风格 · ${tag}`, color: accent },
