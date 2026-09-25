@@ -271,7 +271,7 @@ export class CodexUI {
         tipBg.fillColor = new Color(18, 14, 12, 160);
         tipBg.roundRect(-320, -13, 640, 26, 6); tipBg.fill();
         const tipLbl = CodexUI._lbl(
-            tipBar, '首次遭遇自动解锁 · 未解锁显示剪影', 0, 0, 11, UiTone.muted, 620,
+            tipBar, '首次遭遇自动解锁 · 未知显示？？', 0, 0, 11, UiTone.muted, 620,
         );
 
         // 页签固定在列表上方；列表顶边不得顶穿页签
@@ -394,7 +394,7 @@ export class CodexUI {
         const cells = weapons.map(w => ({
             id: w.id,
             emoji: gm?.hasCodexWeapon(w.id) ? w.emoji : '?',
-            name: gm?.hasCodexWeapon(w.id) ? w.name : '未解锁',
+            name: gm?.hasCodexWeapon(w.id) ? w.name : '？？',
             unlocked: gm?.hasCodexWeapon(w.id) ?? false,
             art: 'weapon' as ThumbArtKind,
         }));
@@ -409,7 +409,7 @@ export class CodexUI {
             const mode = resolveMode(def);
             const body = open
                 ? `[${tier}]${starterHint}\n${def.type === 'melee' ? '近战' : '远程'}·${modeLabel(mode.fireMode)}  伤${def.damage}  CD${def.cooldown}s  距${def.range}\n特效 ${weaponTraitTags(def)}\n${def.description}`
-                : '尚未解锁。局内拾取后会出现在这里。';
+                : '？？';
             CodexUI._detailCard(detail, '', '', body, open ? -2 : 4);
             mountThumbArt(detail, 'weapon', def.id, 52, open);
             const art = detail.getChildByName('ThumbArt');
@@ -457,7 +457,7 @@ export class CodexUI {
         if (!themes.some(t => t.id === CodexUI._pickMap)) CodexUI._pickMap = themes[0]?.id ?? '';
         const cells = themes.map(t => {
             const open = gm?.hasCodexTheme(t.id) ?? false;
-            return { id: t.id, emoji: open ? t.emoji : '?', name: open ? t.name : '未解锁', unlocked: open, art: 'none' as ThumbArtKind };
+            return { id: t.id, emoji: open ? t.emoji : '?', name: open ? t.name : '？？', unlocked: open, art: 'none' as ThumbArtKind };
         });
         CodexUI._gallery(list, cells, () => CodexUI._pickMap, (id) => {
             CodexUI._pickMap = id;
@@ -470,15 +470,13 @@ export class CodexUI {
                 detail, '', '',
                 open
                     ? `${theme.blurb || terrainDesc(theme.obstacleStyle)}\n出现层 ${theme.floorMin}–${theme.floorMax}`
-                    : '尚未进入这块地图。',
+                    : '？？',
                 -36,
             );
-            if (open) {
-                CodexUI._lbl(
-                    detail, theme.name, 0, CodexUI._galleryH / 2 - 18, 16,
-                    new Color(235, 225, 245, 255), DETAIL_W - 28,
-                );
-            }
+            CodexUI._lbl(
+                detail, open ? theme.name : '？？？', 0, CodexUI._galleryH / 2 - 18, 16,
+                new Color(235, 225, 245, 255), DETAIL_W - 28,
+            );
         });
     }
 
@@ -489,7 +487,7 @@ export class CodexUI {
             return {
                 id: e.id,
                 emoji: open ? e.emoji : '?',
-                name: open ? e.displayName : '未解锁',
+                name: open ? e.displayName : '？？',
                 unlocked: open,
                 art: 'enemy' as ThumbArtKind,
             };
@@ -502,7 +500,7 @@ export class CodexUI {
             const open = gm?.hasCodexEnemy(e.id) ?? false;
             CodexUI._detailCard(detail, '', open ? e.displayName : '？？？', open
                 ? CodexUI._enemyStatBlock(e)
-                : '尚未遭遇。', open ? 18 : 4);
+                : '？？', open ? 18 : 4);
             mountThumbArt(detail, 'enemy', e.id, 56, open);
             const art = detail.getChildByName('ThumbArt');
             if (art) art.setPosition(0, 72, 0);
