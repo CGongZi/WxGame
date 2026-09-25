@@ -214,13 +214,15 @@ export class SoulShop {
             }
 
             const state = SoulShop._offerState(offer);
-            // 购买钮贴底；说明在钮上方留足缝，避免挡字
+            // 购买钮贴底；已拥有时底注下移占用钮位，给介绍/技能腾高
             const btnH = 34;
             const btnY = -gh / 2 + 18 + btnH / 2;
-            const helperY = btnY + btnH / 2 + 14;
+            const helperY = state.owned
+                ? btnY
+                : btnY + btnH / 2 + 14;
             const isChar = offer.kind === 'character';
 
-            // 立绘：角色页与标题并排（省纵向空间）；其它商品仍置顶居中
+            // 立绘：角色页与标题并排；其它商品置顶居中
             const thumb = new Node('Thumb');
             thumb.layer = Layers.Enum.UI_2D;
             thumb.setParent(shell);
@@ -260,32 +262,30 @@ export class SoulShop {
             );
             if (isChar) priceLbl.getComponent(Label)!.horizontalAlign = Label.HorizontalAlign.LEFT;
 
-            const { lines, helper } = SoulShop._detailBlocks(offer);
-            // 角色：介绍从立绘下方起；技能固定贴底注上方，介绍不得压入技能区
-            const lineTop = isChar ? gh / 2 - 72 : nameY - 38;
-            const lineStep = 14;
-            let skillDescCount = 0;
-            if (isChar) {
-                const ch = getCharacter(offer.characterId);
-                const sk = skillFor(ch?.id ?? offer.characterId);
-                skillDescCount = Math.min(2, Math.max(1, SoulShop._wrapText(sk.desc || '', 16).length));
-            }
-            const skillBlockH = isChar ? (18 + skillDescCount * 12) : 0;
-            const skillTop = isChar ? helperY + skillBlockH + 8 : 0;
-            const lineFloor = isChar ? skillTop + 10 : helperY + 12;
-            lines.forEach((line, i) => {
-                const y = lineTop - i * lineStep;
-                if (y < lineFloor) return;
-                SoulShop._lbl(
-                    shell, line.text, 0, y, Math.min(line.size ?? 12, 12),
-                    line.color ?? new Color(190, 175, 150, 255), dw - 28,
-                );
-            });
+            const { lines, helper } = SoulShop._detailBlocks(offer, state.owned);
 
-            // 角色技能：人物介绍下方、底注上方（图标 + 名/CD + 简介）
             if (isChar) {
+                // 自上而下：介绍 → 技能 → 底注，互不重叠
                 const ch = getCharacter(offer.characterId);
                 const sk = skillFor(ch?.id ?? offer.characterId);
+                const descLines = SoulShop._wrapText(sk.desc || '', 16).slice(0, 2);
+                const skillBlockH = 18 + Math.max(1, descLines.length) * 12;
+                // 技能固定贴底注上方；介绍只填其上方空隙
+                const skillTop = helperY + skillBlockH + 12;
+
+                let cursor = gh / 2 - 72;
+                const lineStep = 15;
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    // 介绍底边须高于技能顶（字高余量）
+                    if (cursor - 10 < skillTop + 8) break;
+                    SoulShop._lbl(
+                        shell, line.text, 0, cursor, Math.min(line.size ?? 12, 12),
+                        line.color ?? new Color(190, 175, 150, 255), dw - 28,
+                    );
+                    cursor -= lineStep;
+                }
+
                 const skillBtn = new Node('SkillBtn');
                 skillBtn.layer = Layers.Enum.UI_2D;
                 skillBtn.setParent(shell);
@@ -312,14 +312,25 @@ export class SoulShop {
                     new Color(255, 220, 160, 255), infoW,
                 );
                 titleLbl.getComponent(Label)!.horizontalAlign = Label.HorizontalAlign.LEFT;
-                const descLines = SoulShop._wrapText(sk.desc || '', 16);
-                descLines.slice(0, 2).forEach((t, i) => {
+                descLines.forEach((t, i) => {
                     const dl = SoulShop._lbl(
                         shell, t,
                         infoCx, skillTop - 14 - i * 12, 11,
                         new Color(190, 175, 150, 255), infoW,
                     );
                     dl.getComponent(Label)!.horizontalAlign = Label.HorizontalAlign.LEFT;
+                });
+            } else {
+                const lineTop = nameY - 38;
+                const lineStep = 15;
+                const lineFloor = helperY + 12;
+                lines.forEach((line, i) => {
+                    const y = lineTop - i * lineStep;
+                    if (y < lineFloor) return;
+                    SoulShop._lbl(
+                        shell, line.text, 0, y, Math.min(line.size ?? 12, 12),
+                        line.color ?? new Color(190, 175, 150, 255), dw - 28,
+                    );
                 });
             }
 
@@ -477,7 +488,7 @@ export class SoulShop {
     }
 
     /** 属性行 + 固定底栏提示（不与购买钮抢位） */
-    private static _detailBlocks(offer: ShopOffer): {
+    private static _detailBlocks(offer: ShopOffer, owned = false): {
         lines: Array<{ text: string; size?: number; color?: Color }>;
         helper: string;
     } {
@@ -529,7 +540,10 @@ export class SoulShop {
                 { text: `风格 · ${tag}`, color: accent },
                 { text: `专属 ${gear}`, color: accent },
             );
-            return { lines, helper: '解锁后备战可选出战' };
+            return {
+                lines,
+                helper: owned ? '可在备战中选用出战' : '解锁后备战可选出战',
+            };
         }
 
         if (offer.kind === 'kit') {
