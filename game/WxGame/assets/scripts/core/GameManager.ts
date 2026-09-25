@@ -132,7 +132,6 @@ export class GameManager extends Component {
         director.addPersistRootNode(this.node);
         try { profiler.hideStats(); } catch { /* ignore */ }
         this._save = SaveStore.load();
-        this._grantTestSoulOnce();
         this._applyTalentsToStats();
         this._emitCharacter();
         AudioManager.ensure(this._save.settings);
@@ -140,18 +139,6 @@ export class GameManager extends Component {
             floor: this._save.progress.highestFloor,
             soul: this._save.currency.soul,
         });
-    }
-
-    /** 测试用：一次性补 999 灵魂石（已发过则跳过） */
-    private _grantTestSoulOnce() {
-        const GRANT_ID = 'test_soul_999_20260922';
-        const grants = this._save.grants ?? [];
-        if (grants.indexOf(GRANT_ID) >= 0) return;
-        this._save.currency.soul += 999;
-        this._save.grants = [...grants, GRANT_ID];
-        this.persist();
-        eventBus.emit('soul-changed', { soul: this._save.currency.soul });
-        console.log('[GameManager] 测试灵魂石 +999 →', this._save.currency.soul);
     }
 
     onDestroy() {

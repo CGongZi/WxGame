@@ -71,7 +71,7 @@ export interface SaveData {
 
 export const DEFAULT_SAVE: SaveData = {
     version: SAVE_VERSION,
-    currency: { soul: 0, totalRunCoins: 0 },
+    currency: { soul: 50, totalRunCoins: 0 },
     progress: {
         highestFloor: 0,
         highestScore: 0,
@@ -173,7 +173,7 @@ export function migrateSave(raw: any): SaveData {
     return {
         version: SAVE_VERSION,
         currency: {
-            soul: 0,
+            soul: 50,
             totalRunCoins: raw.totalCoins ?? 0,
         },
         progress: {
