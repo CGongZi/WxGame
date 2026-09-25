@@ -19,3 +19,13 @@ If you're using Codex or another agent-capable tool, additional project-scoped h
 Managed by Trellis. Edits outside this block are preserved; edits inside may be overwritten by a future `trellis update`.
 
 <!-- TRELLIS:END -->
+
+# WxGame hard cadence (project)
+
+After **every** development slice:
+
+1. Develop
+2. Check (light self-check / Trellis check as appropriate)
+3. Edit milestones in `.trellis/tasks/09-19-wxgame-pixel-dungeon/progress-plan.md` and `prd.md`
+
+Skipping step 3 is forbidden. See `.cursor/rules/dev-check-milestone.mdc`.

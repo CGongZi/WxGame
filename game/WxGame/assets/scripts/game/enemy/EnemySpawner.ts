@@ -33,19 +33,10 @@ export class EnemySpawner extends Component {
     ];
 
     onLoad() {
-        // 强制父节点居中
         this.node.setPosition(0, 0, 0);
-        console.log('[EnemyLayer] worldPos =', this.node.worldPosition);
-
-        if (!this.playerNode) {
-            this.playerNode = find('Game/Canvas/Player') as Node;
-            if (!this.playerNode) {
-                // 再往上一层找
-                this.playerNode = find('Canvas/Player') as Node;
-            }
-        }
-        console.log('[Spawner] playerNode:', this.playerNode?.name ?? 'NOT FOUND');
-        this._spawnAll();
+        // DungeonManager 接管刷怪，EnemySpawner 不再初始生成敌人
+        // （保留脚本体，避免场景组件引用报错）
+        console.log('[EnemySpawner] 已由 DungeonManager 接管，跳过初始刷怪');
     }
 
     private _spawnAll() {

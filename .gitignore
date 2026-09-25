@@ -1,0 +1,29 @@
+# Dependencies & caches
+node_modules/
+**/node_modules/
+.DS_Store
+Thumbs.db
+*.log
+
+# Local / scratch
+tmp/
+temp/
+.local/
+
+# Heavy local tooling (do not push binaries to GitHub)
+tools/pixelorama/app/
+tools/pixelorama/*.zip
+*.exe
+*.pck
+
+# Editor / OS
+.vs/
+*.swp
+*~
+
+# Env / secrets (never commit)
+.env
+.env.*
+!.env.example
+credentials.json
+**/secrets/

@@ -30,6 +30,7 @@ export const GameEvents = {
     WEAPON_CHANGED:       'weapon-changed',
     ITEM_PICKED:          'item-picked',
     COIN_COLLECTED:       'coin-collected',
+    BAG_CHANGED:          'bag-changed',
 
     // 地牢
     ROOM_CLEARED:         'room-cleared',

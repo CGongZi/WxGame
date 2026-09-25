@@ -17,6 +17,10 @@ export class WechatService {
     private static _openid: string = '';
     private static _rewardedAd: any = null;  // wx.RewardedVideoAd
 
+    static hasOpenDataRank(): boolean {
+        return false;
+    }
+
     // ════════════════════════════════
     //  登录
     // ════════════════════════════════

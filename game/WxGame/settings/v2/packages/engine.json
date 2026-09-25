@@ -104,7 +104,7 @@
             "_value": false
           },
           "profiler": {
-            "_value": true
+            "_value": false
           },
           "occlusion-query": {
             "_value": false
@@ -205,7 +205,6 @@
           "mask",
           "particle-2d",
           "physics-2d-box2d",
-          "profiler",
           "rich-text",
           "spine-3.8",
           "tiled-map",

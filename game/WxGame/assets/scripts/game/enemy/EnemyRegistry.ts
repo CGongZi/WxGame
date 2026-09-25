@@ -1,28 +1,39 @@
-import { SlimeEnemy } from './SlimeEnemy';
+import { Node } from 'cc';
+
+/** 可被武器/子弹命中的敌人最小接口 */
+export interface CombatEnemy {
+    node: Node;
+    readonly isDead: boolean;
+    readonly isValid: boolean;
+    /** 碰撞半径（世界单位），缺省 22 */
+    readonly collideRadius?: number;
+    takeDamage(amount: number): void;
+    /** 可选：减速（mul 0~1，持续 sec 秒）；未实现的怪忽略 */
+    applySlow?(mul: number, sec: number): void;
+    /** 中立可打物（木箱等）：可被命中，但不计入清房 / 雷达 / 分离 */
+    readonly neutral?: boolean;
+}
 
 /**
  * 全局敌人注册表
- * SlimeEnemy 初始化时自动注册，销毁时自动注销
- * AttackController 直接从这里查找敌人，不用遍历节点树
  */
 export class EnemyRegistry {
-    private static _enemies: SlimeEnemy[] = [];
+    private static _enemies: CombatEnemy[] = [];
 
-    static register(enemy: SlimeEnemy) {
-        if (!EnemyRegistry._enemies.includes(enemy)) {
+    static register(enemy: CombatEnemy) {
+        if (EnemyRegistry._enemies.indexOf(enemy) < 0) {
             EnemyRegistry._enemies.push(enemy);
         }
     }
 
-    static unregister(enemy: SlimeEnemy) {
+    static unregister(enemy: CombatEnemy) {
         const idx = EnemyRegistry._enemies.indexOf(enemy);
         if (idx >= 0) EnemyRegistry._enemies.splice(idx, 1);
     }
 
-    /** 获取范围内所有存活敌人，按距离排序 */
-    static getInRange(cx: number, cy: number, range: number): SlimeEnemy[] {
+    static getInRange(cx: number, cy: number, range: number, includeNeutral = true): CombatEnemy[] {
         return EnemyRegistry._enemies
-            .filter(e => !e.isDead)
+            .filter(e => e?.isValid && !e.isDead && (includeNeutral || !e.neutral))
             .map(e => {
                 const dx = e.node.position.x - cx;
                 const dy = e.node.position.y - cy;
@@ -35,8 +46,32 @@ export class EnemyRegistry {
 
     static get count() { return EnemyRegistry._enemies.length; }
 
-    /** 仍存活的敌人数量（不含已死亡但尚未 destroy 的） */
     static get aliveCount(): number {
-        return EnemyRegistry._enemies.filter(e => e?.isValid && !e.isDead).length;
+        return EnemyRegistry._enemies.filter(e => e?.isValid && !e.isDead && !e.neutral).length;
+    }
+
+    static getAlive(): CombatEnemy[] {
+        return EnemyRegistry._enemies.filter(e => e?.isValid && !e.isDead && !e.neutral);
+    }
+
+    /** 圆 vs 敌人碰撞体积命中（子弹用） */
+    static getHitByCircle(cx: number, cy: number, radius: number): CombatEnemy[] {
+        return EnemyRegistry._enemies
+            .filter(e => e?.isValid && !e.isDead)
+            .map(e => {
+                const er = e.collideRadius ?? 22;
+                const dx = e.node.position.x - cx;
+                const dy = e.node.position.y - cy;
+                const min = radius + er;
+                return { e, d2: dx * dx + dy * dy, min2: min * min };
+            })
+            .filter(({ d2, min2 }) => d2 <= min2)
+            .sort((a, b) => a.d2 - b.d2)
+            .map(({ e }) => e);
+    }
+
+    /** 清怪（换房）。中立物（木箱）由地形层自己管理生命周期，仍保留可打 */
+    static clear() {
+        EnemyRegistry._enemies = EnemyRegistry._enemies.filter(e => e?.neutral && e.isValid && !e.isDead);
     }
 }

@@ -1,0 +1,134 @@
+{
+  "version": 14,
+  "publishedAt": "2026-09-22T00:00:00.000Z",
+  "characters": [
+    {
+      "id": "knight",
+      "name": "骑士",
+      "emoji": "🛡️",
+      "desc": "均衡。生命与防御更高。",
+      "cost": 0,
+      "skinId": "knight",
+      "exclusiveWeaponId": "sword",
+      "base": { "maxHp": 110, "atk": 20, "def": 2, "moveSpeed": 145, "critChance": 0.15, "critMultiplier": 1.5 }
+    },
+    {
+      "id": "ranger",
+      "name": "游侠",
+      "emoji": "🏹",
+      "desc": "更快，暴击更高，生命更少。",
+      "cost": 12,
+      "skinId": "ranger",
+      "exclusiveWeaponId": "bow",
+      "base": { "maxHp": 85, "atk": 22, "def": 0, "moveSpeed": 185, "critChance": 0.22, "critMultiplier": 1.5 }
+    }
+  ],
+  "weapons": [
+    {
+      "id": "sword", "name": "铁剑", "emoji": "🗡️", "type": "melee",
+      "damage": 20, "cooldown": 0.45, "range": 110, "coneHalf": 70, "multiHit": 1,
+      "description": "近战标准剑，攻速快，伤害稳定"
+    },
+    {
+      "id": "bow", "name": "木弓", "emoji": "🏹", "type": "ranged",
+      "damage": 18, "cooldown": 0.55, "range": 650, "coneHalf": 0, "multiHit": 1,
+      "bulletSpeed": 580, "bulletSize": 12, "bulletColor": [255, 220, 60, 255], "bulletShape": "arrow",
+      "description": "箭矢高速直线飞行，中远程精准输出"
+    }
+  ],
+  "enemies": [
+    { "id": "slime", "hp": 30, "damage": 8, "speed": 65, "speedScale": "room", "behaviorId": "chase", "bodySize": 64, "attackRange": 55, "defaultColor": [90, 180, 70] },
+    { "id": "archer", "hp": 28, "damage": 10, "speed": 70, "speedScale": "room", "behaviorId": "kite", "bodySize": 56, "attackRange": 420, "defaultColor": [160, 140, 90] }
+  ],
+  "mapThemes": [
+    {
+      "id": "cave",
+      "name": "幽暗洞穴",
+      "emoji": "🪨",
+      "floorDark": [42, 34, 28],
+      "floorLight": [58, 48, 40],
+      "floorEdge": [28, 22, 18],
+      "floorShine": [255, 220, 180, 12],
+      "borderColor": [18, 12, 10],
+      "obstacleStyle": "rock",
+      "obstacleCount": 48,
+      "cornerCount": 4,
+      "obstacleDark": [50, 42, 36],
+      "obstacleMid": [85, 72, 60],
+      "obstacleLight": [120, 100, 80],
+      "floorMin": 1,
+      "floorMax": 99,
+      "weight": 10,
+      "blurb": "潮湿石洞，岩石挡路。"
+    }
+  ],
+  "biomeSpawn": {
+    "cave": [
+      { "type": "slime", "weight": 40 },
+      { "type": "archer", "weight": 20 }
+    ]
+  },
+  "encounters": [
+    {
+      "id": "scatter_few",
+      "placement": "scatter",
+      "slots": [{ "source": "biome", "count": 3 }]
+    }
+  ],
+  "themeEncounters": {
+    "cave": [{ "encounterId": "scatter_few", "weight": 10 }]
+  },
+  "floors": [],
+  "dungeon": {
+    "totalFloors": 5,
+    "roomsPerFloor": 4,
+    "roomScaleStep": 0.18,
+    "bossHpBase": 220,
+    "bossHpPerFloor": 90,
+    "bossSpeedBase": 52,
+    "bossSpeedPerFloor": 4,
+    "bossDamageBase": 18,
+    "bossDamagePerFloor": 4,
+    "bossAttackRange": 95,
+    "bossBehaviorId": "boss",
+    "finalBossHpBase": 520,
+    "finalBossHpPerFloor": 40,
+    "finalBossSpeed": 70,
+    "finalBossDamage": 28,
+    "finalBossAttackRange": 110,
+    "finalRoomTrashCap": 3,
+    "summonCount": 3,
+    "summonHp": 18,
+    "summonSpeed": 95,
+    "summonDamage": 6,
+    "summonAttackRange": 50,
+    "summonDetectionRange": 700
+  },
+  "items": [
+    { "id": "potion_hp", "name": "治疗药水", "emoji": "🧪", "desc": "立刻回复生命。", "kind": "heal", "amount": 30 }
+  ],
+  "talents": [
+    {
+      "id": "hp_up", "name": "坚韧", "emoji": "❤", "desc": "最大生命 +10/级",
+      "maxLevel": 5, "costBase": 3, "costStep": 2, "requires": [],
+      "effects": [{ "kind": "stat", "stat": "maxHp", "perLevel": 10 }]
+    }
+  ],
+  "drops": [],
+  "shop": [
+    { "id": "unlock_bow", "kind": "weapon", "weaponId": "bow", "name": "解锁木弓", "desc": "永久解锁木弓", "cost": 20 }
+  ],
+  "economy": {
+    "coinDropChance": 0.6,
+    "coinValueMin": 1,
+    "coinValueMax": 5,
+    "shopItemCount": 4,
+    "deathSoulPerFloor": 1.5,
+    "deathSoulPerKills": 8,
+    "deathSoulPerCoins": 30,
+    "deathSoulCap": 48,
+    "floorClearSoulBase": 2,
+    "floorClearSoulPerFloor": 1,
+    "clearBonusSoul": 20
+  }
+}

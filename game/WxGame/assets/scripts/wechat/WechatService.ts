@@ -17,6 +17,11 @@ export class WechatService {
     private static _openid: string = '';
     private static _rewardedAd: any = null;  // wx.RewardedVideoAd
 
+    static hasOpenDataRank(): boolean {
+        // Phase I：开放数据域好友榜。未接前恒 false。
+        return false;
+    }
+
     // ════════════════════════════════
     //  登录
     // ════════════════════════════════

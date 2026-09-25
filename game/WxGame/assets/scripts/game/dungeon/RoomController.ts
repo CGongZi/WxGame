@@ -22,7 +22,7 @@ export class RoomController extends Component {
 
     onLoad() {
         this._builder = this.getComponent(RoomBuilder);
-        this._builder?.setDoorsOpen(false);
+        // 开放世界模式下 RoomBuilder 不画墙，setDoorsOpen 为空操作
 
         eventBus.on(GameEvents.ENEMY_KILLED, this._onEnemyKilled, this);
     }
@@ -58,13 +58,16 @@ export class RoomController extends Component {
         console.log('[Room] 已清空！大门开启');
     }
 
-    /** 多房间阶段用：进入新房时重置 */
+    /** 多房间阶段用：进入新房时重置（DungeonManager 调用） */
     resetForNewRoom(hasEnemies: boolean) {
         this._cleared = !hasEnemies;
-        this._armed   = true;
+        this._armed   = false;
         this._builder?.setDoorsOpen(this._cleared);
-        if (this._cleared) {
-            eventBus.emit(GameEvents.ROOM_CLEARED, { roomId: 0 });
-        }
+
+        // 延迟 armed，等 DungeonManager 刷怪完成
+        this.scheduleOnce(() => {
+            this._armed = true;
+            this._checkClear('newroom');
+        }, 0.25);
     }
 }

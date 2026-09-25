@@ -1,0 +1,22 @@
+---
+description: Hard cadence — develop, check, then edit milestones every time
+alwaysApply: true
+---
+
+# Develop → Check → Milestone (Hard Rule)
+
+After **every** development slice on this project, the agent MUST complete all three steps before stopping or starting the next slice:
+
+1. **Develop** — implement the scoped change.
+2. **Check** — run a light self-check / Trellis check appropriate to the slice (compile sanity, key paths, camera iron rule if touched, no obvious regressions).
+3. **Edit milestones** — update `.trellis/tasks/09-19-wxgame-pixel-dungeon/progress-plan.md` and `prd.md` (checkboxes, 近期下一波, Phase notes). Skipping milestone edits is a process failure.
+
+## Forbidden
+
+- Ending a turn after code changes without updating milestones.
+- Saying “milestones later” or deferring checkbox updates to a future session.
+- Starting the next feature before the previous slice’s check + milestone edit are done.
+
+## Animation / FX note (related)
+
+Visual motion (breath, swing, VFX) lives on visual child nodes. Do not move `Player` world position or break WorldBridge / ViewZoom for FX.

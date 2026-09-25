@@ -32,13 +32,16 @@ export class RoomBuilder extends Component {
             this.addComponent(RoomController);
         }
 
-        this._rebuild();
+        // 开放世界模式：不画房间墙壁，只画地图边界（在 FloorRenderer 里已画）
+        // RoomBuilder 仅保留 RoomController 逻辑，不渲染
     }
 
-    /** 开/关门：重绘门洞区域 */
+    /** 开/关门（开放世界模式下为空操作，不绘制任何墙） */
     setDoorsOpen(open: boolean) {
         this._doorsOpen = open;
-        this._rebuild();
+        // 开放世界：onLoad 不调用 _rebuild，故这里也不触发重绘
+        // 若将来需要恢复房间模式，取消注释下面这行：
+        // this._rebuild();
     }
 
     get doorsOpen() { return this._doorsOpen; }

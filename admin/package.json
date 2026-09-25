@@ -1,0 +1,16 @@
+{
+  "name": "wxgame-cms-admin",
+  "private": true,
+  "version": "0.2.0",
+  "description": "WxGame CMS mock — auth (K8) + CRUD (K9) + upload (K10) + publish (K11) + audit/rollback (K12)",
+  "type": "module",
+  "scripts": {
+    "validate": "node scripts/validate-pack.mjs",
+    "validate:seed": "node scripts/validate-pack.mjs fixtures/seed-draft.json",
+    "export:builtin": "node scripts/export-builtin-pack.mjs",
+    "smoke:k14": "node scripts/k14-smoke.mjs",
+    "test:g7": "node scripts/g7-save-roundtrip.mjs",
+    "start": "node server/mock-server.mjs",
+    "mock": "node server/mock-server.mjs"
+  }
+}
