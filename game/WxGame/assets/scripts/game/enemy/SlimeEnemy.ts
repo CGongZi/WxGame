@@ -224,7 +224,7 @@ export class SlimeEnemy extends Component {
     private _trySpecial(dist: number, motion: EnemyMotion | null | undefined): boolean {
         if (this._specialCd > 0) return false;
         const mx = this.node.position.x, my = this.node.position.y;
-        if (this.kind === 'beetle') {
+        if (this.kind === 'beetle' || this.kind === 'cog') {
             if (dist < 130 || dist > 340) return false;
             if (!WorldBridge.lineOfSight(mx, my, WorldBridge.x, WorldBridge.y)) return false;
             const dx = WorldBridge.x - mx, dy = WorldBridge.y - my;
@@ -236,10 +236,10 @@ export class SlimeEnemy extends Component {
             motion?.windup(0.55);
             const parent = this.node.parent;
             if (parent) CombatVfx.chargeWarn(parent, mx, my, this._dashDir.x, this._dashDir.y, Math.min(300, dist + 60));
-            AudioManager.playEnemyAttack('beetle');
+            AudioManager.playEnemyAttack(this.kind === 'cog' ? 'beetle' : 'beetle');
             return true;
         }
-        if (this.kind === 'toad') {
+        if (this.kind === 'toad' || this.kind === 'crab') {
             if (dist < 110 || dist > 280) return false;
             this._state = 'windup';
             this._specialT = 0.38;
@@ -250,7 +250,7 @@ export class SlimeEnemy extends Component {
     }
 
     private _startDash(motion: EnemyMotion | null | undefined) {
-        if (this.kind === 'toad') { this._startLeap(motion); return; }
+        if (this.kind === 'toad' || this.kind === 'crab') { this._startLeap(motion); return; }
         this._state = 'dash';
         this._specialT = 0.4;
         motion?.strike();
@@ -344,7 +344,7 @@ export class SlimeEnemy extends Component {
     private _doAttack() {
         this._attackTimer = this.attackCooldown;
         const motion = this.node.getChildByName('Body')?.getComponent(EnemyMotion);
-        motion?.windup(this.kind === 'tank' || this.kind === 'beetle' || this.kind === 'crystal' || this.kind === 'golem' ? 0.28 : 0.14);
+        motion?.windup(this.kind === 'tank' || this.kind === 'beetle' || this.kind === 'cog' || this.kind === 'crystal' || this.kind === 'golem' ? 0.28 : 0.14);
         this.scheduleOnce(() => {
             if (this._state === 'dead' || !this.node?.isValid) return;
             motion?.strike();
@@ -361,9 +361,9 @@ export class SlimeEnemy extends Component {
                         ? new Color(180, 40, 40, 255)
                         : this.kind === 'fast'
                             ? new Color(80, 220, 255, 255)
-                            : this.kind === 'beetle'
+                            : this.kind === 'beetle' || this.kind === 'cog'
                                 ? new Color(160, 120, 60, 255)
-                                : this.kind === 'toad'
+                                : this.kind === 'toad' || this.kind === 'crab'
                                     ? new Color(70, 200, 90, 255)
                                     : this.kind === 'crystal'
                                         ? new Color(160, 220, 255, 255)
@@ -372,13 +372,13 @@ export class SlimeEnemy extends Component {
                                             : new Color(90, 200, 80, 255);
                     CombatVfx.burst(parent, this.node.position.x, this.node.position.y,
                         color, this.kind === 'tank' || this.kind === 'crystal' || this.kind === 'golem' ? 8 : 5);
-                    if (this.kind === 'tank' || this.kind === 'beetle' || this.kind === 'crystal' || this.kind === 'golem') {
+                    if (this.kind === 'tank' || this.kind === 'beetle' || this.kind === 'cog' || this.kind === 'crystal' || this.kind === 'golem') {
                         CombatVfx.ringPulse(parent, this.node.position.x, this.node.position.y,
                             color, 16, 0.2);
                     }
                 }
             }
-        }, this.kind === 'tank' || this.kind === 'beetle' || this.kind === 'crystal' || this.kind === 'golem' ? 0.28 : 0.14);
+        }, this.kind === 'tank' || this.kind === 'beetle' || this.kind === 'cog' || this.kind === 'crystal' || this.kind === 'golem' ? 0.28 : 0.14);
     }
 
     private _die() {

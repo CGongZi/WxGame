@@ -2,7 +2,7 @@ import { Color } from 'cc';
 import { ConfigStore } from '../../core/ConfigStore';
 
 /** 障碍物绘制风格（FloorRenderer 按此分支画形） */
-export type ObstacleStyle = 'rock' | 'pillar' | 'root' | 'crystal' | 'cloud';
+export type ObstacleStyle = 'rock' | 'pillar' | 'root' | 'crystal' | 'cloud' | 'gear';
 
 /**
  * MapThemeDef —— 运行时主题（颜色已由 ConfigStore 从配置包转成 Color）
@@ -47,7 +47,7 @@ function firstTheme(): MapThemeDef {
 
 // ── M3：主题刷怪池（数值在配置包） ────────────────────────────
 
-export type SpawnEnemyType = 'slime' | 'fast' | 'tank' | 'archer' | 'wisp' | 'mage' | 'beetle' | 'bat' | 'toad' | 'crystal' | 'golem' | 'moth' | 'dragon' | 'raven' | 'mosquito' | 'specter' | 'bone' | 'spider' | 'snake' | 'imp' | 'shroom' | 'jelly';
+export type SpawnEnemyType = 'slime' | 'fast' | 'tank' | 'archer' | 'wisp' | 'mage' | 'beetle' | 'bat' | 'toad' | 'crystal' | 'golem' | 'moth' | 'dragon' | 'raven' | 'mosquito' | 'specter' | 'bone' | 'spider' | 'snake' | 'imp' | 'shroom' | 'jelly' | 'cog' | 'spark' | 'puppet' | 'drone' | 'wolf' | 'crab';
 
 /** 单条刷怪权重条目（hp/spd 乘子 + 可选占位色） */
 export interface BiomeSpawnEntry {
@@ -131,6 +131,8 @@ export function bossTintForTheme(themeId: string, isFinal: boolean): { body: Col
             return { body: c(40, 20, 70), mid: c(160, 100, 240) };
         case 'necropolis':
             return { body: c(50, 48, 55), mid: c(180, 190, 170) };
+        case 'clockwork':
+            return { body: c(90, 55, 30), mid: c(255, 170, 60) };
         default:
             return { body: c(90, 20, 120), mid: c(180, 60, 220) };
     }

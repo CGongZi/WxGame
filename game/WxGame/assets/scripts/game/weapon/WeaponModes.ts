@@ -65,6 +65,12 @@ const MODE_BY_ID: Record<string, Partial<ModeParams>> = {
     scatter_gun: { fireMode: 'spread', pellets: 5, spreadDeg: 34, knockback: 18 },
     saw_disc: { fireMode: 'bounce', bounce: 4 },
     thunder_lance: { fireMode: 'thrust', knockback: 44 },
+    chain_whip: { fireMode: 'flurry' },
+    boomerang: { fireMode: 'bounce', bounce: 3, knockback: 12 },
+    flame_flask: { fireMode: 'lob', splash: 80, knockback: 20 },
+    claymore: { fireMode: 'heavy', knockback: 48, splash: 60 },
+    rail_cannon: { fireMode: 'beam', knockback: 28 },
+    prism_rod: { fireMode: 'homing' },
 };
 
 export function resolveMode(def: WeaponDef): ModeParams {

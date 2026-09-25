@@ -102,6 +102,8 @@ export class WispEnemy extends Component {
         if (this.motionKind === 'moth') return 3.6;
         if (this.motionKind === 'raven') return 2.6;
         if (this.motionKind === 'specter') return 3.0;
+        if (this.motionKind === 'spark') return 2.0;
+        if (this.motionKind === 'jelly') return 2.8;
         return 2.8;
     }
 
@@ -117,7 +119,8 @@ export class WispEnemy extends Component {
     private _silhouetteKind(): string {
         return this.motionKind === 'bat' || this.motionKind === 'moth'
             || this.motionKind === 'raven' || this.motionKind === 'mosquito'
-            || this.motionKind === 'specter'
+            || this.motionKind === 'specter' || this.motionKind === 'spark'
+            || this.motionKind === 'jelly'
             ? this.motionKind : 'wisp';
     }
 

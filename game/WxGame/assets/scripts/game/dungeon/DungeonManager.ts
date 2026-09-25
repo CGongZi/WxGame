@@ -748,7 +748,8 @@ export class DungeonManager extends Component {
             wisp.attackRange = def.attackRange ?? 48;
             wisp.playerNode = this._playerNode!;
             wisp.motionKind = (ec.type === 'bat' || ec.type === 'moth'
-                || ec.type === 'raven' || ec.type === 'mosquito' || ec.type === 'specter')
+                || ec.type === 'raven' || ec.type === 'mosquito' || ec.type === 'specter'
+                || ec.type === 'spark' || ec.type === 'jelly')
                 ? ec.type : 'wisp';
             if (ec.color) wisp.bodyColor = ec.color;
             return wisp;
@@ -873,6 +874,7 @@ export class DungeonManager extends Component {
         const motion = body.addComponent(EnemyMotion);
         motion.kind = kind === 'fast' || kind === 'tank' || kind === 'beetle'
             || kind === 'toad' || kind === 'crystal' || kind === 'golem' || kind === 'bone'
+            || kind === 'cog' || kind === 'puppet' || kind === 'wolf' || kind === 'crab'
             ? kind : 'slime';
     }
 

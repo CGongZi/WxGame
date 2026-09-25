@@ -40,6 +40,12 @@ export function drawWeaponGlyph(g: Graphics, id: WeaponType, size = 36) {
         case 'scatter_gun': drawScatterGun(g, s); break;
         case 'saw_disc': drawSawDisc(g, s); break;
         case 'thunder_lance': drawThunderLance(g, s); break;
+        case 'chain_whip': drawChainWhip(g, s); break;
+        case 'boomerang': drawBoomerang(g, s); break;
+        case 'flame_flask': drawFlameFlask(g, s); break;
+        case 'claymore': drawClaymore(g, s); break;
+        case 'rail_cannon': drawRailCannon(g, s); break;
+        case 'prism_rod': drawPrismRod(g, s); break;
         default: drawSword(g, s); break;
     }
 }
@@ -436,4 +442,74 @@ function drawThunderLance(g: Graphics, s: number) {
     g.strokeColor = new Color(255, 255, 200, 255);
     g.lineWidth = 1.5 * s;
     g.moveTo(-3 * s, 2 * s); g.lineTo(1 * s, -4 * s); g.lineTo(-1 * s, -4 * s); g.lineTo(3 * s, -10 * s); g.stroke();
+}
+
+function drawChainWhip(g: Graphics, s: number) {
+    g.fillColor = new Color(90, 70, 50, 255);
+    g.circle(-2 * s, -12 * s, 3.5 * s); g.fill();
+    g.strokeColor = new Color(160, 160, 170, 255);
+    g.lineWidth = 2.4 * s;
+    g.moveTo(0, -10 * s);
+    g.bezierCurveTo(8 * s, -2 * s, 10 * s, 8 * s, 4 * s, 16 * s); g.stroke();
+    g.fillColor = new Color(200, 80, 60, 255);
+    g.circle(4 * s, 16 * s, 3 * s); g.fill();
+    g.fillColor = new Color(180, 180, 190, 255);
+    g.circle(2 * s, 2 * s, 2 * s); g.fill();
+    g.circle(6 * s, 8 * s, 2 * s); g.fill();
+}
+
+function drawBoomerang(g: Graphics, s: number) {
+    g.fillColor = new Color(170, 110, 50, 255);
+    g.moveTo(-12 * s, 8 * s);
+    g.bezierCurveTo(-4 * s, 16 * s, 8 * s, 14 * s, 14 * s, 4 * s);
+    g.bezierCurveTo(8 * s, 8 * s, -2 * s, 6 * s, -8 * s, 0);
+    g.close(); g.fill();
+    g.fillColor = new Color(210, 150, 80, 255);
+    g.moveTo(-10 * s, 6 * s);
+    g.bezierCurveTo(-2 * s, 12 * s, 6 * s, 10 * s, 10 * s, 4 * s);
+    g.bezierCurveTo(4 * s, 6 * s, -2 * s, 4 * s, -6 * s, 1 * s);
+    g.close(); g.fill();
+}
+
+function drawFlameFlask(g: Graphics, s: number) {
+    g.fillColor = new Color(80, 50, 40, 255);
+    g.rect(-3 * s, 8 * s, 6 * s, 6 * s); g.fill();
+    g.fillColor = new Color(200, 80, 40, 255);
+    g.ellipse(0, -2 * s, 10 * s, 12 * s); g.fill();
+    g.fillColor = new Color(255, 180, 60, 200);
+    g.ellipse(0, -2 * s, 6 * s, 8 * s); g.fill();
+    g.fillColor = new Color(255, 240, 120, 255);
+    g.circle(-2 * s, 2 * s, 2 * s); g.fill();
+}
+
+function drawClaymore(g: Graphics, s: number) {
+    g.fillColor = new Color(200, 210, 230, 255);
+    g.rect(-3.5 * s, -10 * s, 7 * s, 26 * s); g.fill();
+    g.moveTo(-5 * s, 16 * s); g.lineTo(0, 22 * s); g.lineTo(5 * s, 16 * s); g.close(); g.fill();
+    g.fillColor = new Color(120, 80, 40, 255);
+    g.rect(-12 * s, -4 * s, 24 * s, 4 * s); g.fill();
+    g.fillColor = new Color(70, 50, 30, 255);
+    g.rect(-2.5 * s, -16 * s, 5 * s, 12 * s); g.fill();
+}
+
+function drawRailCannon(g: Graphics, s: number) {
+    g.fillColor = new Color(50, 60, 75, 255);
+    g.roundRect(-14 * s, -5 * s, 22 * s, 10 * s, 2 * s); g.fill();
+    g.fillColor = new Color(90, 110, 130, 255);
+    g.rect(6 * s, -3 * s, 12 * s, 6 * s); g.fill();
+    g.fillColor = new Color(80, 220, 255, 255);
+    g.circle(16 * s, 0, 2.5 * s); g.fill();
+    g.strokeColor = new Color(120, 240, 255, 200);
+    g.lineWidth = 1.5 * s;
+    g.moveTo(18 * s, 0); g.lineTo(26 * s, 0); g.stroke();
+}
+
+function drawPrismRod(g: Graphics, s: number) {
+    g.fillColor = new Color(90, 60, 120, 255);
+    g.rect(-1.5 * s, -14 * s, 3 * s, 24 * s); g.fill();
+    g.fillColor = new Color(180, 120, 255, 255);
+    g.moveTo(0, 14 * s); g.lineTo(6 * s, 4 * s); g.lineTo(0, 7 * s); g.lineTo(-6 * s, 4 * s);
+    g.close(); g.fill();
+    g.fillColor = new Color(255, 200, 255, 200);
+    g.circle(0, 10 * s, 2 * s); g.fill();
 }

@@ -94,7 +94,8 @@ export class EnemyMotion extends Component {
         }
 
         switch (this.kind) {
-            case 'slime': {
+            case 'slime':
+            case 'puppet': {
                 const step = Math.sin(this._runPhase);
                 const hop = Math.max(0, step);
                 const plant = Math.max(0, -step);
@@ -106,7 +107,8 @@ export class EnemyMotion extends Component {
                 x = punch * 8;
                 break;
             }
-            case 'fast': {
+            case 'fast':
+            case 'wolf': {
                 const p = Math.sin(this._runPhase);
                 const hop = Math.abs(p);
                 // #173 像素走步时少转角，靠切帧表现腿动
@@ -117,7 +119,8 @@ export class EnemyMotion extends Component {
                 x = punch * 10;
                 break;
             }
-            case 'beetle': {
+            case 'beetle':
+            case 'cog': {
                 const p = Math.sin(this._runPhase);
                 sx = 1.06 + p * 0.04 + punch * 0.22;
                 sy = 0.82 + Math.abs(Math.sin(this._runPhase * 2)) * 0.1 + wind * 0.08;
@@ -126,7 +129,8 @@ export class EnemyMotion extends Component {
                 x = punch * 8;
                 break;
             }
-            case 'toad': {
+            case 'toad':
+            case 'crab': {
                 const hop = Math.max(0, Math.sin(this._runPhase));
                 const crouch = Math.max(0, -Math.sin(this._runPhase));
                 sx = 1.1 + crouch * 0.22 + punch * 0.18 - wind * 0.1;

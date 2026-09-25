@@ -31,7 +31,7 @@ export interface ConfigCharacter {
     base: ConfigStatBlock;
 }
 
-export type ObstacleStyleId = 'rock' | 'pillar' | 'root' | 'crystal' | 'cloud';
+export type ObstacleStyleId = 'rock' | 'pillar' | 'root' | 'crystal' | 'cloud' | 'gear';
 
 export interface ConfigTheme {
     id: string;
@@ -55,7 +55,7 @@ export interface ConfigTheme {
     blurb: string;
 }
 
-export type SpawnEnemyTypeId = 'slime' | 'fast' | 'tank' | 'archer' | 'wisp' | 'mage' | 'beetle' | 'bat' | 'toad' | 'crystal' | 'golem' | 'moth' | 'dragon' | 'raven' | 'mosquito' | 'specter' | 'bone' | 'spider' | 'snake' | 'imp' | 'shroom' | 'jelly';
+export type SpawnEnemyTypeId = 'slime' | 'fast' | 'tank' | 'archer' | 'wisp' | 'mage' | 'beetle' | 'bat' | 'toad' | 'crystal' | 'golem' | 'moth' | 'dragon' | 'raven' | 'mosquito' | 'specter' | 'bone' | 'spider' | 'snake' | 'imp' | 'shroom' | 'jelly' | 'cog' | 'spark' | 'puppet' | 'drone' | 'wolf' | 'crab';
 
 export interface ConfigBiomeEntry {
     type: SpawnEnemyTypeId;
@@ -211,7 +211,7 @@ export interface ConfigItem {
     dropWeight?: number;
 }
 
-export type ConfigEnemyId = 'slime' | 'fast' | 'tank' | 'archer' | 'wisp' | 'mage' | 'beetle' | 'bat' | 'toad' | 'crystal' | 'golem' | 'moth' | 'dragon' | 'raven' | 'mosquito' | 'specter' | 'bone' | 'spider' | 'snake' | 'imp' | 'shroom' | 'jelly';
+export type ConfigEnemyId = 'slime' | 'fast' | 'tank' | 'archer' | 'wisp' | 'mage' | 'beetle' | 'bat' | 'toad' | 'crystal' | 'golem' | 'moth' | 'dragon' | 'raven' | 'mosquito' | 'specter' | 'bone' | 'spider' | 'snake' | 'imp' | 'shroom' | 'jelly' | 'cog' | 'spark' | 'puppet' | 'drone' | 'wolf' | 'crab';
 
 /** 怪物基础数值。层数和主题乘子在刷出时再乘，不写回这张表。 */
 export interface ConfigEnemy {

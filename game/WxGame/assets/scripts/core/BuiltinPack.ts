@@ -6,8 +6,8 @@ import { ConfigPack } from './ConfigSchema';
  * 远程包以后走同一 Schema，由 ConfigStore.tryApply 校验。
  */
 export const BUILTIN_PACK: ConfigPack = {
-    version: 36,
-    publishedAt: '2026-09-23',
+    version: 37,
+    publishedAt: '2026-09-25',
     characters: [
         {
             id: 'knight',
@@ -358,6 +358,52 @@ export const BUILTIN_PACK: ConfigPack = {
             rarity: 'gold', unlockFloor: 3, dropWeight: 2,
             description: '【雷突贯穿】极长电矛直线穿排，强击退。窄廊之王。',
         },
+        {
+            id: 'chain_whip', name: '锁链鞭', emoji: '⛓️', type: 'melee',
+            damage: 18, cooldown: 0.28, range: 155, coneHalf: 70, multiHit: 3,
+            fireMode: 'flurry', knockback: 10,
+            rarity: 'blue', unlockFloor: 2, dropWeight: 5,
+            description: '【锁链连笞】三节快抽，中距抽打。',
+        },
+        {
+            id: 'boomerang', name: '回旋镖', emoji: '🪃', type: 'ranged',
+            damage: 17, cooldown: 0.5, range: 520, coneHalf: 0, multiHit: 1,
+            bulletSpeed: 480, bulletSize: 14, bulletColor: [210, 140, 70, 255], bulletShape: 'ball',
+            fireMode: 'bounce', bounce: 3, knockback: 12,
+            rarity: 'green', unlockFloor: 1, dropWeight: 6,
+            description: '【弹墙回旋】木镖弹墙三次，窄廊连环。',
+        },
+        {
+            id: 'flame_flask', name: '燃焰瓶', emoji: '🧴', type: 'ranged',
+            damage: 28, cooldown: 0.75, range: 300, coneHalf: 0, multiHit: 1,
+            bulletSpeed: 320, bulletSize: 16, bulletColor: [255, 120, 40, 255], bulletShape: 'orb',
+            fireMode: 'lob', splash: 80, knockback: 20,
+            rarity: 'blue', unlockFloor: 2, dropWeight: 4,
+            description: '【燃焰溅射】投瓶落地爆开灼热圈。',
+        },
+        {
+            id: 'claymore', name: '大剑', emoji: '⚔️', type: 'melee',
+            damage: 42, cooldown: 0.78, range: 145, coneHalf: 85, multiHit: 1,
+            fireMode: 'heavy', knockback: 48, splash: 60,
+            rarity: 'purple', unlockFloor: 3, dropWeight: 3,
+            description: '【重斩震荡】大开大合，落点震退。',
+        },
+        {
+            id: 'rail_cannon', name: '磁轨炮', emoji: '📡', type: 'ranged',
+            damage: 52, cooldown: 1.05, range: 560, coneHalf: 0, multiHit: 1,
+            bulletSpeed: 900, bulletSize: 10, bulletColor: [120, 220, 255, 255], bulletShape: 'ball',
+            fireMode: 'beam', knockback: 28,
+            rarity: 'gold', unlockFloor: 4, dropWeight: 2,
+            description: '【磁轨射线】瞬时直线打穿整列。',
+        },
+        {
+            id: 'prism_rod', name: '棱镜杖', emoji: '💠', type: 'ranged',
+            damage: 21, cooldown: 0.45, range: 440, coneHalf: 0, multiHit: 1,
+            bulletSpeed: 360, bulletSize: 13, bulletColor: [180, 120, 255, 255], bulletShape: 'orb',
+            fireMode: 'homing',
+            rarity: 'purple', unlockFloor: 3, dropWeight: 3,
+            description: '【光棱追踪】自动拐向最近敌人。',
+        },
     ],
     enemies: [
         { id: 'slime', hp: 55, damage: 14, speed: 65, speedScale: 'room', behaviorId: 'chase', bodySize: 64, attackRange: 55, defaultColor: [90, 180, 70] },
@@ -382,6 +428,12 @@ export const BUILTIN_PACK: ConfigPack = {
         { id: 'imp', hp: 46, damage: 18, speed: 88, speedScale: 'room', behaviorId: 'chase', bodySize: 48, attackRange: 52, defaultColor: [190, 60, 50] },
         { id: 'shroom', hp: 70, damage: 14, speed: 48, speedScale: 'room', behaviorId: 'chase', bodySize: 60, attackRange: 56, defaultColor: [180, 100, 90] },
         { id: 'jelly', hp: 36, damage: 13, speed: 78, speedScale: 'flat', behaviorId: 'fly', bodySize: 52, attackRange: 46, defaultColor: [120, 200, 220] },
+        { id: 'cog', hp: 70, damage: 18, speed: 70, speedScale: 'room', behaviorId: 'chase', bodySize: 58, attackRange: 54, defaultColor: [180, 120, 50] },
+        { id: 'spark', hp: 28, damage: 14, speed: 120, speedScale: 'flat', behaviorId: 'fly', bodySize: 42, attackRange: 44, defaultColor: [255, 220, 80] },
+        { id: 'puppet', hp: 55, damage: 16, speed: 82, speedScale: 'room', behaviorId: 'chase', bodySize: 54, attackRange: 52, defaultColor: [160, 100, 70] },
+        { id: 'drone', hp: 48, damage: 17, speed: 75, speedScale: 'room', behaviorId: 'kite', bodySize: 50, attackRange: 400, defaultColor: [90, 140, 170] },
+        { id: 'wolf', hp: 44, damage: 16, speed: 118, speedScale: 'flat', behaviorId: 'chase', bodySize: 52, attackRange: 50, defaultColor: [110, 100, 100] },
+        { id: 'crab', hp: 80, damage: 20, speed: 55, speedScale: 'room', behaviorId: 'chase', bodySize: 60, attackRange: 58, defaultColor: [200, 80, 60] },
     ],
     mapThemes: [
         {
@@ -544,12 +596,33 @@ export const BUILTIN_PACK: ConfigPack = {
             weight: 6,
             blurb: '密集墓室格网，门洞相连：一半空棺藏箱子，一半伏兵。骨卫追击，幽灵穿墙。',
         },
+        {
+            id: 'clockwork',
+            name: '齿轮秘库',
+            emoji: '⚙️',
+            floorDark: [52, 38, 26],
+            floorLight: [88, 62, 38],
+            floorEdge: [34, 24, 16],
+            floorShine: [255, 190, 90, 26],
+            borderColor: [22, 14, 10],
+            obstacleStyle: 'gear',
+            obstacleCount: 38,
+            cornerCount: 4,
+            obstacleDark: [70, 48, 28],
+            obstacleMid: [150, 100, 45],
+            obstacleLight: [255, 190, 90],
+            floorMin: 3,
+            floorMax: 99,
+            weight: 5,
+            blurb: '黄铜铆钉地板与蒸汽管道：障碍是咬合大齿轮，机油渍发亮。专属机械怪——齿轮滚压、电火花、提线木偶、浮空机甲；与洞穴/沼泽/冰原完全不同。',
+        },
     ],
     biomeSpawn: {
         cave: [
             { type: 'tank', weight: 22, hpMul: 1.12, color: [95, 82, 70] },
             { type: 'slime', weight: 22, color: [72, 68, 58] },
             { type: 'beetle', weight: 16, color: [100, 80, 50] },
+            { type: 'wolf', weight: 10, floorMin: 2, color: [100, 90, 80] },
             { type: 'spider', weight: 14, floorMin: 2, color: [80, 55, 50] },
             { type: 'shroom', weight: 10, floorMin: 2, color: [140, 90, 70] },
             { type: 'wisp', weight: 8, color: [120, 160, 200] },
@@ -564,6 +637,7 @@ export const BUILTIN_PACK: ConfigPack = {
             { type: 'archer', weight: 20, color: [190, 185, 200] },
             { type: 'mage', weight: 14, floorMin: 2, color: [170, 140, 210] },
             { type: 'golem', weight: 16, floorMin: 2, hpMul: 1.05, color: [130, 120, 145] },
+            { type: 'wolf', weight: 10, floorMin: 2, color: [120, 110, 130] },
             { type: 'tank', weight: 10, hpMul: 1.08, color: [120, 112, 145] },
             { type: 'spider', weight: 10, floorMin: 2, color: [90, 70, 100] },
             { type: 'beetle', weight: 8, color: [110, 100, 130] },
@@ -576,6 +650,7 @@ export const BUILTIN_PACK: ConfigPack = {
         ],
         swamp: [
             { type: 'toad', weight: 18, color: [45, 150, 65] },
+            { type: 'crab', weight: 12, color: [180, 70, 50] },
             { type: 'snake', weight: 16, color: [50, 140, 70] },
             { type: 'shroom', weight: 12, color: [160, 80, 70] },
             { type: 'mosquito', weight: 12, color: [55, 130, 45] },
@@ -591,6 +666,7 @@ export const BUILTIN_PACK: ConfigPack = {
         ],
         ice: [
             { type: 'crystal', weight: 20, color: [160, 210, 250] },
+            { type: 'crab', weight: 10, floorMin: 2, color: [160, 100, 90] },
             { type: 'jelly', weight: 14, color: [140, 210, 240] },
             { type: 'mage', weight: 14, color: [160, 200, 255] },
             { type: 'tank', weight: 12, hpMul: 1.1, spdMul: 0.9, color: [100, 140, 180] },
@@ -658,6 +734,14 @@ export const BUILTIN_PACK: ConfigPack = {
             { type: 'tank', weight: 3, color: [90, 85, 95] },
             { type: 'slime', weight: 2, color: [80, 90, 70] },
         ],
+        clockwork: [
+            { type: 'cog', weight: 26, color: [190, 130, 55] },
+            { type: 'spark', weight: 22, color: [255, 230, 90] },
+            { type: 'puppet', weight: 20, color: [170, 110, 75] },
+            { type: 'drone', weight: 18, color: [100, 150, 180] },
+            { type: 'cog', weight: 8, floorMin: 4, hpMul: 1.15, color: [220, 150, 60] },
+            { type: 'drone', weight: 6, floorMin: 4, color: [80, 160, 200] },
+        ],
     },
     encounters: [
         { id: 'scatter_few', placement: 'scatter', slots: [{ source: 'biome', count: 3 }] },
@@ -696,6 +780,22 @@ export const BUILTIN_PACK: ConfigPack = {
             slots: [
                 { source: 'enemy', enemyId: 'mage', count: 2 },
                 { source: 'enemy', enemyId: 'wisp', count: 1 },
+            ],
+        },
+        {
+            id: 'gear_swarm',
+            placement: 'ring',
+            slots: [
+                { source: 'enemy', enemyId: 'cog', count: 2 },
+                { source: 'enemy', enemyId: 'spark', count: 2 },
+            ],
+        },
+        {
+            id: 'puppet_line',
+            placement: 'door',
+            slots: [
+                { source: 'enemy', enemyId: 'puppet', count: 2 },
+                { source: 'enemy', enemyId: 'drone', count: 1 },
             ],
         },
     ],
@@ -773,6 +873,15 @@ export const BUILTIN_PACK: ConfigPack = {
             { encounterId: 'pillar_side', weight: 4 },
             { encounterId: 'marksmen', weight: 3 },
             { encounterId: 'door_line', weight: 2 },
+        ],
+        clockwork: [
+            { encounterId: 'gear_swarm', weight: 9 },
+            { encounterId: 'puppet_line', weight: 7 },
+            { encounterId: 'ring_pack', weight: 6 },
+            { encounterId: 'scatter_mid', weight: 5 },
+            { encounterId: 'door_line', weight: 4 },
+            { encounterId: 'pillar_side', weight: 3 },
+            { encounterId: 'scatter_few', weight: 2 },
         ],
     },
     floors: [

@@ -168,7 +168,7 @@ export class DungeonLayout {
     }
 
     static tintFor(themeId: string, style: string): HazardTint {
-        if (themeId === 'volcano') return 'lava';
+        if (themeId === 'volcano' || themeId === 'clockwork' || style === 'gear') return 'lava';
         if (themeId === 'swamp' || themeId === 'necropolis') return 'poison';
         if (themeId === 'abyss' || themeId === 'sky' || style === 'cloud') return 'void';
         if (themeId === 'ice' || style === 'crystal') return 'frost';

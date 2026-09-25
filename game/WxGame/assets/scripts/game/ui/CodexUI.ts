@@ -188,6 +188,48 @@ const ENEMY_CODEX: readonly EnemyCodexDef[] = [
         behavior: '触手飘飞，周期性落地可打',
     },
     {
+        id: 'cog',
+        displayName: '齿轮怪',
+        emoji: '⚙️',
+        biome: '齿轮秘库专属',
+        behavior: '咬合齿轮滚压近战，壳硬难缠',
+    },
+    {
+        id: 'spark',
+        displayName: '电火花',
+        emoji: '⚡',
+        biome: '齿轮秘库专属',
+        behavior: '高速飘飞贴脸，落地窗口短',
+    },
+    {
+        id: 'puppet',
+        displayName: '提线木偶',
+        emoji: '🪆',
+        biome: '齿轮秘库专属',
+        behavior: '关节木偶近战扑击',
+    },
+    {
+        id: 'drone',
+        displayName: '浮空机甲',
+        emoji: '🛸',
+        biome: '齿轮秘库专属',
+        behavior: '悬停保持距离射击',
+    },
+    {
+        id: 'wolf',
+        displayName: '灰狼',
+        emoji: '🐺',
+        biome: '洞穴 / 遗迹',
+        behavior: '低伏高速贴脸撕咬',
+    },
+    {
+        id: 'crab',
+        displayName: '巨蟹',
+        emoji: '🦀',
+        biome: '沼泽 / 冰原',
+        behavior: '横壳双螯，血厚近战',
+    },
+    {
         id: 'boss',
         displayName: '地牢首领',
         emoji: '👑',
@@ -203,6 +245,7 @@ function terrainDesc(style: ObstacleStyle): string {
         case 'root': return '树根缠绕，毒雾湿地';
         case 'crystal': return '晶石突兀，寒光地面';
         case 'cloud': return '云团浮岛，高空风带';
+        case 'gear': return '黄铜齿轮咬合，铆钉机油地面';
         default: return '未知地形';
     }
 }

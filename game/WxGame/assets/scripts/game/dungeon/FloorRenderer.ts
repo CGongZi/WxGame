@@ -374,6 +374,28 @@ export class FloorRenderer extends Component {
             }
             return;
         }
+        if (theme.id === 'clockwork' || theme.obstacleStyle === 'gear') {
+            g.fillColor = new Color(40, 28, 16, 70);
+            for (let i = 0; i < 10; i++) {
+                const x = rng(-MAP_HALF_W + 100, MAP_HALF_W - 100);
+                const y = rng(-MAP_HALF_H + 100, MAP_HALF_H - 100);
+                g.ellipse(x, y, 28 + Math.random() * 36, 10 + Math.random() * 14); g.fill();
+            }
+            g.strokeColor = new Color(255, 170, 60, 55);
+            g.lineWidth = 2;
+            for (let i = 0; i < 8; i++) {
+                const x = rng(-MAP_HALF_W + 120, MAP_HALF_W - 120);
+                const y = rng(-MAP_HALF_H + 120, MAP_HALF_H - 120);
+                g.circle(x, y, 18 + Math.random() * 22); g.stroke();
+            }
+            g.fillColor = new Color(180, 120, 40, 40);
+            for (let i = 0; i < 14; i++) {
+                const x = rng(-MAP_HALF_W + 80, MAP_HALF_W - 80);
+                const y = rng(-MAP_HALF_H + 80, MAP_HALF_H - 80);
+                g.circle(x, y, 3); g.fill();
+            }
+            return;
+        }
         g.strokeColor = new Color(theme.obstacleDark.r, theme.obstacleDark.g, theme.obstacleDark.b, 140);
         g.lineWidth = 2;
         for (let i = 0; i < 14; i++) {
@@ -638,6 +660,7 @@ export class FloorRenderer extends Component {
             case 'root':    return 32 + Math.random() * 28;
             case 'crystal': return 30 + Math.random() * 26;
             case 'cloud':   return 36 + Math.random() * 28;
+            case 'gear':    return 34 + Math.random() * 26;
             default:        return 40 + Math.random() * 30;
         }
     }
@@ -648,6 +671,7 @@ export class FloorRenderer extends Component {
             case 'root':    this._drawRoot(node, size, theme); break;
             case 'crystal': this._drawCrystal(node, size, theme); break;
             case 'cloud':   this._drawCloud(node, size, theme); break;
+            case 'gear':    this._drawGear(node, size, theme); break;
             default:        this._drawRock(node, size, theme); break;
         }
     }
@@ -749,5 +773,29 @@ export class FloorRenderer extends Component {
         g.ellipse(h * 0.3, h * 0.05, h * 0.6, h * 0.38); g.fill();
         g.fillColor = theme.obstacleLight;
         g.ellipse(0, h * 0.28, h * 0.45, h * 0.28); g.fill();
+    }
+
+    private _drawGear(node: Node, size: number, theme: MapThemeDef) {
+        const s = Math.round(size);
+        node.addComponent(UITransform).setContentSize(s * 1.2, s * 1.2);
+        const g = node.addComponent(Graphics);
+        const R = s * 0.42;
+        const teeth = 8;
+        g.fillColor = theme.obstacleDark;
+        for (let i = 0; i < teeth; i++) {
+            const a0 = (i / teeth) * Math.PI * 2;
+            const a1 = ((i + 0.38) / teeth) * Math.PI * 2;
+            const a2 = ((i + 1) / teeth) * Math.PI * 2;
+            if (i === 0) g.moveTo(Math.cos(a0) * R, Math.sin(a0) * R);
+            g.lineTo(Math.cos(a1) * R * 1.32, Math.sin(a1) * R * 1.32);
+            g.lineTo(Math.cos(a2) * R, Math.sin(a2) * R);
+        }
+        g.close(); g.fill();
+        g.fillColor = theme.obstacleMid;
+        g.circle(0, 0, R * 0.72); g.fill();
+        g.fillColor = theme.obstacleLight;
+        g.circle(0, 0, R * 0.28); g.fill();
+        g.fillColor = theme.obstacleDark;
+        g.circle(0, 0, R * 0.12); g.fill();
     }
 }

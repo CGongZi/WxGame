@@ -12,9 +12,9 @@ import type { BiomeSpawnEntry, MapThemeDef } from '../game/dungeon/MapThemes';
 import type { WeaponDef } from '../game/weapon/WeaponController';
 
 const STAT_KEYS: readonly StatKey[] = ['maxHp', 'atk', 'def', 'moveSpeed', 'critChance', 'critMultiplier'];
-const OBSTACLE_STYLES: readonly ObstacleStyleId[] = ['rock', 'pillar', 'root', 'crystal', 'cloud'];
-const SPAWN_TYPES: readonly SpawnEnemyTypeId[] = ['slime', 'fast', 'tank', 'archer', 'wisp', 'mage', 'beetle', 'bat', 'toad', 'crystal', 'golem', 'moth', 'dragon', 'raven', 'mosquito', 'specter', 'bone', 'spider', 'snake', 'imp', 'shroom', 'jelly'];
-const ENEMY_IDS: readonly ConfigEnemyId[] = ['slime', 'fast', 'tank', 'archer', 'wisp', 'mage', 'beetle', 'bat', 'toad', 'crystal', 'golem', 'moth', 'dragon', 'raven', 'mosquito', 'specter', 'bone', 'spider', 'snake', 'imp', 'shroom', 'jelly'];
+const OBSTACLE_STYLES: readonly ObstacleStyleId[] = ['rock', 'pillar', 'root', 'crystal', 'cloud', 'gear'];
+const SPAWN_TYPES: readonly SpawnEnemyTypeId[] = ['slime', 'fast', 'tank', 'archer', 'wisp', 'mage', 'beetle', 'bat', 'toad', 'crystal', 'golem', 'moth', 'dragon', 'raven', 'mosquito', 'specter', 'bone', 'spider', 'snake', 'imp', 'shroom', 'jelly', 'cog', 'spark', 'puppet', 'drone', 'wolf', 'crab'];
+const ENEMY_IDS: readonly ConfigEnemyId[] = ['slime', 'fast', 'tank', 'archer', 'wisp', 'mage', 'beetle', 'bat', 'toad', 'crystal', 'golem', 'moth', 'dragon', 'raven', 'mosquito', 'specter', 'bone', 'spider', 'snake', 'imp', 'shroom', 'jelly', 'cog', 'spark', 'puppet', 'drone', 'wolf', 'crab'];
 const BULLET_SHAPES = ['ball', 'arrow', 'orb'] as const;
 const FIRE_MODES = ['slash', 'thrust', 'heavy', 'flurry', 'wave', 'bolt', 'spread', 'burst', 'bounce', 'homing', 'beam', 'lob'] as const;
 

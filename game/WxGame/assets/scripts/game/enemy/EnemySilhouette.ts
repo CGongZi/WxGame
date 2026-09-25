@@ -37,6 +37,12 @@ export function drawEnemySilhouette(g: Graphics, kind: string, tint: Color, size
     else if (kind === 'spider') drawSpider(g, tint, s);
     else if (kind === 'snake') drawSnake(g, tint, s);
     else if (kind === 'shroom') drawShroom(g, tint, s);
+    else if (kind === 'cog') drawCog(g, tint, s);
+    else if (kind === 'spark') drawSpark(g, tint, s);
+    else if (kind === 'puppet') drawPuppet(g, tint, s);
+    else if (kind === 'drone') drawDrone(g, tint, s);
+    else if (kind === 'wolf') drawWolf(g, tint, s);
+    else if (kind === 'crab') drawCrab(g, tint, s);
     else drawSlime(g, tint, s);
 }
 
@@ -685,6 +691,147 @@ function drawShroom(g: Graphics, tint: Color, s: number) {
     g.circle(4.5 * s, -2.5 * s, 1.6 * s); g.fill();
     g.fillColor = shade(tint, 0.45);
     g.ellipse(0, -8 * s, 4 * s, 2 * s); g.fill();
+}
+
+/** 齿轮怪：咬合齿轮躯体 + 黄铜眼 */
+function drawCog(g: Graphics, tint: Color, s: number) {
+    g.fillColor = new Color(0, 0, 0, 50);
+    g.ellipse(0, -18 * s, 18 * s, 5 * s); g.fill();
+    const R = 16 * s;
+    g.fillColor = shade(tint, 0.65);
+    for (let i = 0; i < 8; i++) {
+        const a0 = (i / 8) * Math.PI * 2;
+        const a1 = ((i + 0.4) / 8) * Math.PI * 2;
+        const a2 = ((i + 1) / 8) * Math.PI * 2;
+        if (i === 0) g.moveTo(Math.cos(a0) * R, Math.sin(a0) * R);
+        g.lineTo(Math.cos(a1) * R * 1.28, Math.sin(a1) * R * 1.28);
+        g.lineTo(Math.cos(a2) * R, Math.sin(a2) * R);
+    }
+    g.close(); g.fill();
+    g.fillColor = new Color(tint.r, tint.g, tint.b, 255);
+    g.circle(0, 0, 11 * s); g.fill();
+    g.fillColor = shade(tint, 0.45);
+    g.circle(0, 0, 5 * s); g.fill();
+    g.fillColor = new Color(255, 220, 120, 255);
+    g.circle(-4 * s, 3 * s, 2.2 * s); g.fill();
+    g.circle(5 * s, 3 * s, 2.2 * s); g.fill();
+    g.fillColor = new Color(30, 20, 10, 255);
+    g.circle(-4 * s, 3 * s, 1 * s); g.fill();
+    g.circle(5 * s, 3 * s, 1 * s); g.fill();
+}
+
+/** 电火花：尖芒核心 + 闪电触须 */
+function drawSpark(g: Graphics, tint: Color, s: number) {
+    g.fillColor = new Color(tint.r, tint.g, tint.b, 70);
+    g.circle(0, 2 * s, 18 * s); g.fill();
+    g.fillColor = new Color(255, 255, 220, 255);
+    g.circle(0, 2 * s, 7 * s); g.fill();
+    g.fillColor = new Color(tint.r, tint.g, tint.b, 255);
+    g.circle(0, 2 * s, 4 * s); g.fill();
+    g.strokeColor = shade(tint, 1.1);
+    g.lineWidth = 2 * Math.max(1, s);
+    g.moveTo(0, 10 * s); g.lineTo(6 * s, 18 * s); g.lineTo(2 * s, 16 * s); g.lineTo(8 * s, 24 * s); g.stroke();
+    g.moveTo(0, -4 * s); g.lineTo(-8 * s, -14 * s); g.lineTo(-3 * s, -12 * s); g.lineTo(-10 * s, -22 * s); g.stroke();
+    g.moveTo(8 * s, 0); g.lineTo(18 * s, 4 * s); g.stroke();
+    g.moveTo(-8 * s, 2 * s); g.lineTo(-16 * s, -2 * s); g.stroke();
+    g.fillColor = new Color(40, 40, 20, 255);
+    g.circle(-2 * s, 3 * s, 1.2 * s); g.fill();
+    g.circle(3 * s, 3 * s, 1.2 * s); g.fill();
+}
+
+/** 提线木偶：木身关节 + 头顶提线 */
+function drawPuppet(g: Graphics, tint: Color, s: number) {
+    g.fillColor = new Color(0, 0, 0, 45);
+    g.ellipse(0, -20 * s, 12 * s, 4 * s); g.fill();
+    g.strokeColor = new Color(200, 200, 210, 180);
+    g.lineWidth = 1.2 * s;
+    g.moveTo(-6 * s, 22 * s); g.lineTo(-8 * s, 10 * s); g.stroke();
+    g.moveTo(6 * s, 22 * s); g.lineTo(8 * s, 10 * s); g.stroke();
+    g.fillColor = shade(tint, 0.75);
+    g.roundRect(-9 * s, -8 * s, 18 * s, 20 * s, 3 * s); g.fill();
+    g.fillColor = new Color(tint.r, tint.g, tint.b, 255);
+    g.circle(0, 12 * s, 8 * s); g.fill();
+    g.fillColor = new Color(255, 230, 200, 255);
+    g.circle(-3 * s, 13 * s, 2 * s); g.fill();
+    g.circle(4 * s, 13 * s, 2 * s); g.fill();
+    g.fillColor = new Color(40, 20, 20, 255);
+    g.circle(-3 * s, 13 * s, 0.9 * s); g.fill();
+    g.circle(4 * s, 13 * s, 0.9 * s); g.fill();
+    g.fillColor = shade(tint, 0.55);
+    g.roundRect(-14 * s, -2 * s, 6 * s, 14 * s, 2 * s); g.fill();
+    g.roundRect(8 * s, -2 * s, 6 * s, 14 * s, 2 * s); g.fill();
+    g.roundRect(-8 * s, -18 * s, 6 * s, 12 * s, 2 * s); g.fill();
+    g.roundRect(2 * s, -18 * s, 6 * s, 12 * s, 2 * s); g.fill();
+}
+
+/** 浮空机甲：舱体 + 侧旋翼 + 炮口 */
+function drawDrone(g: Graphics, tint: Color, s: number) {
+    g.fillColor = new Color(0, 0, 0, 40);
+    g.ellipse(0, -14 * s, 16 * s, 4 * s); g.fill();
+    g.fillColor = shade(tint, 0.55);
+    g.ellipse(-14 * s, 4 * s, 8 * s, 3 * s); g.fill();
+    g.ellipse(14 * s, 4 * s, 8 * s, 3 * s); g.fill();
+    g.fillColor = new Color(tint.r, tint.g, tint.b, 255);
+    g.roundRect(-12 * s, -6 * s, 24 * s, 14 * s, 4 * s); g.fill();
+    g.fillColor = shade(tint, 1.2);
+    g.ellipse(0, 2 * s, 7 * s, 5 * s); g.fill();
+    g.fillColor = new Color(80, 220, 255, 255);
+    g.circle(-3 * s, 2 * s, 2 * s); g.fill();
+    g.circle(4 * s, 2 * s, 2 * s); g.fill();
+    g.fillColor = shade(tint, 0.4);
+    g.roundRect(-3 * s, -12 * s, 6 * s, 6 * s, 1 * s); g.fill();
+    g.fillColor = new Color(255, 160, 60, 220);
+    g.circle(0, -12 * s, 2 * s); g.fill();
+}
+
+/** 灰狼：低伏四足 + 竖耳 */
+function drawWolf(g: Graphics, tint: Color, s: number) {
+    g.fillColor = new Color(0, 0, 0, 50);
+    g.ellipse(0, -16 * s, 18 * s, 5 * s); g.fill();
+    g.fillColor = new Color(tint.r, tint.g, tint.b, 255);
+    g.ellipse(0, -2 * s, 18 * s, 10 * s); g.fill();
+    g.fillColor = shade(tint, 1.1);
+    g.ellipse(14 * s, 2 * s, 9 * s, 7 * s); g.fill();
+    g.fillColor = shade(tint, 0.7);
+    g.moveTo(10 * s, 8 * s); g.lineTo(8 * s, 16 * s); g.lineTo(14 * s, 10 * s); g.close(); g.fill();
+    g.moveTo(16 * s, 8 * s); g.lineTo(20 * s, 16 * s); g.lineTo(18 * s, 8 * s); g.close(); g.fill();
+    g.fillColor = new Color(255, 220, 100, 255);
+    g.circle(16 * s, 3 * s, 1.8 * s); g.fill();
+    g.fillColor = shade(tint, 0.6);
+    g.moveTo(-16 * s, 0); g.bezierCurveTo(-22 * s, 6 * s, -24 * s, 2 * s, -20 * s, -4 * s); g.close(); g.fill();
+    g.fillColor = shade(tint, 0.75);
+    g.ellipse(-8 * s, -10 * s, 4 * s, 6 * s); g.fill();
+    g.ellipse(6 * s, -10 * s, 4 * s, 6 * s); g.fill();
+    g.ellipse(-2 * s, -12 * s, 3.5 * s, 5 * s); g.fill();
+    g.ellipse(10 * s, -11 * s, 3.5 * s, 5 * s); g.fill();
+}
+
+/** 巨蟹：横壳 + 双螯 */
+function drawCrab(g: Graphics, tint: Color, s: number) {
+    g.fillColor = new Color(0, 0, 0, 50);
+    g.ellipse(0, -16 * s, 20 * s, 5 * s); g.fill();
+    g.fillColor = shade(tint, 0.7);
+    g.ellipse(0, -2 * s, 20 * s, 12 * s); g.fill();
+    g.fillColor = new Color(tint.r, tint.g, tint.b, 255);
+    g.ellipse(0, 0, 17 * s, 10 * s); g.fill();
+    g.fillColor = shade(tint, 0.5);
+    g.moveTo(-18 * s, 4 * s); g.lineTo(-28 * s, 12 * s); g.lineTo(-22 * s, 2 * s); g.close(); g.fill();
+    g.moveTo(18 * s, 4 * s); g.lineTo(28 * s, 12 * s); g.lineTo(22 * s, 2 * s); g.close(); g.fill();
+    g.fillColor = shade(tint, 0.85);
+    g.ellipse(-24 * s, 10 * s, 6 * s, 4 * s); g.fill();
+    g.ellipse(24 * s, 10 * s, 6 * s, 4 * s); g.fill();
+    g.fillColor = new Color(255, 240, 200, 255);
+    g.circle(-6 * s, 4 * s, 2.5 * s); g.fill();
+    g.circle(6 * s, 4 * s, 2.5 * s); g.fill();
+    g.fillColor = new Color(30, 10, 10, 255);
+    g.circle(-6 * s, 4 * s, 1.1 * s); g.fill();
+    g.circle(6 * s, 4 * s, 1.1 * s); g.fill();
+    g.strokeColor = shade(tint, 0.4);
+    g.lineWidth = 2 * s;
+    for (const side of [-1, 1]) {
+        g.moveTo(side * 10 * s, -8 * s); g.lineTo(side * 16 * s, -16 * s); g.stroke();
+        g.moveTo(side * 4 * s, -10 * s); g.lineTo(side * 8 * s, -18 * s); g.stroke();
+    }
 }
 
 function shade(c: Color, mul: number): Color {

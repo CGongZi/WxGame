@@ -161,6 +161,17 @@ export class ThemeAmbient extends Component {
                 }
             }
         }
+        // 齿轮秘库：机油渍略减速
+        if (amb._themeId === 'clockwork') {
+            for (const h of amb._hotspots) {
+                const dx = wx - h.x;
+                const dy = wy - h.y;
+                if (dx * dx + dy * dy <= h.r * h.r) {
+                    mul *= 0.88;
+                    break;
+                }
+            }
+        }
         return mul;
     }
 
@@ -498,6 +509,26 @@ export class ThemeAmbient extends Component {
                 g.ellipse(0, 0, r * 0.85, r * 0.55); g.stroke();
             }
         }
+
+        if (themeId === 'clockwork') {
+            for (let i = 0; i < 10; i++) {
+                const x = this._rng(-MAP_HALF_W + 150, MAP_HALF_W - 150);
+                const y = this._rng(-MAP_HALF_H + 150, MAP_HALF_H - 150);
+                if (Math.hypot(x, y) < 220) continue;
+                const r = 30 + Math.random() * 26;
+                this._hotspots.push({ x, y, r });
+                const oil = new Node(`Oil_${i}`);
+                oil.setParent(this.node);
+                oil.setPosition(x, y, 0);
+                oil.addComponent(UITransform).setContentSize(r * 2.2, r * 1.6);
+                const g = oil.addComponent(Graphics);
+                g.fillColor = new Color(30, 22, 12, 90);
+                g.ellipse(0, 0, r, r * 0.55); g.fill();
+                g.strokeColor = new Color(255, 170, 60, 70);
+                g.lineWidth = 1.5;
+                g.ellipse(0, 0, r * 0.75, r * 0.4); g.stroke();
+            }
+        }
     }
 
     update(dt: number) {
@@ -518,6 +549,7 @@ export class ThemeAmbient extends Component {
             case 'ruins': return 0.4;
             case 'abyss': return 0.32;
             case 'necropolis': return 0.34;
+            case 'clockwork': return 0.3;
             case 'ice':   return 0.45;
             case 'sky':   return 0.5;
             default:      return 0.5;
