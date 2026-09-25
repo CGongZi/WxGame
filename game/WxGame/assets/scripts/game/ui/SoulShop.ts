@@ -243,7 +243,8 @@ export class SoulShop {
             art.setParent(thumb);
             art.setPosition(0, 0, 0);
             art.addComponent(UITransform).setContentSize(48, 48);
-            art.setScale(0.4, 0.4, 1);
+            // 角色由 _paintThumb 自设 0.6；补给/武器勿再 ×0.4（会缩成芝麻粒）
+            art.setScale(1, 1, 1);
             SoulShop._paintThumb(art.addComponent(Graphics), offer);
 
             const nameY = isChar ? gh / 2 - 24 : gh / 2 - 62;
@@ -653,10 +654,11 @@ export class SoulShop {
             }
         }
         if (offer.kind === 'kit') {
-            if (mountThumbArt(g.node, 'item', offer.itemId, 44, true)) return;
+            // 详情框约 52px：画满框，不再二次缩放
+            if (mountThumbArt(g.node, 'item', offer.itemId, 48, true)) return;
             const item = ConfigStore.item(offer.itemId);
             if (item) {
-                drawItemGlyph(g, item, 40);
+                drawItemGlyph(g, item, 44);
                 return;
             }
         }

@@ -161,8 +161,10 @@ export class SlimeEnemy extends Component {
         this.node.getChildByName('Body')?.getComponent(EnemyMotion)?.flinch();
         AudioManager.playEnemyHurt(this.kind || 'slime');
 
-        // 空中扑跳不被打断（落地才算）；冲锋 / 蓄力被打会被顶停
-        if (this._state !== 'leap') {
+        // 空中扑跳 / 冲锋蓄力·冲刺不被普攻打断（否则甲虫只亮红线不冲，像「只瞄准」）
+        if (this._state === 'leap' || this._state === 'windup' || this._state === 'dash') {
+            // 仅受击闪白，动作继续
+        } else {
             this._state = 'stunned';
             this._stunTimer = 0.25;
         }
