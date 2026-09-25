@@ -53,7 +53,9 @@ export class RedeemUI {
         inputHost.layer = Layers.Enum.UI_2D;
         inputHost.setParent(panel);
         inputHost.setPosition(0, 70, 0);
-        inputHost.addComponent(UITransform).setContentSize(420, 48);
+        const hostUt = inputHost.addComponent(UITransform);
+        hostUt.setContentSize(420, 48);
+        hostUt.setAnchorPoint(0.5, 0.5);
         const ig = inputHost.addComponent(Graphics);
         ig.fillColor = new Color(22, 18, 14, 255);
         ig.roundRect(-210, -24, 420, 48, 10); ig.fill();
@@ -65,12 +67,17 @@ export class RedeemUI {
         editNode.layer = Layers.Enum.UI_2D;
         editNode.setParent(inputHost);
         editNode.setPosition(0, 0, 0);
-        editNode.addComponent(UITransform).setContentSize(400, 40);
+        const editUt = editNode.addComponent(UITransform);
+        editUt.setContentSize(400, 40);
+        editUt.setAnchorPoint(0.5, 0.5);
 
         const textLabNode = new Node('TEXT_LABEL');
         textLabNode.layer = Layers.Enum.UI_2D;
         textLabNode.setParent(editNode);
-        textLabNode.addComponent(UITransform).setContentSize(400, 36);
+        textLabNode.setPosition(0, 0, 0);
+        const textUt = textLabNode.addComponent(UITransform);
+        textUt.setContentSize(400, 36);
+        textUt.setAnchorPoint(0.5, 0.5);
         const textLab = textLabNode.addComponent(Label);
         textLab.string = '';
         textLab.fontSize = 18;
@@ -79,16 +86,21 @@ export class RedeemUI {
         textLab.verticalAlign = VerticalTextAlignment.CENTER;
         textLab.overflow = Overflow.CLAMP;
 
-        const phNode = new Node('PLACEHOLDER_LABEL');
+        // 占位文案自己管：EditBox.placeholderLabel 会被引擎拽到左上角
+        const phNode = new Node('Placeholder');
         phNode.layer = Layers.Enum.UI_2D;
-        phNode.setParent(editNode);
-        phNode.addComponent(UITransform).setContentSize(400, 36);
+        phNode.setParent(inputHost);
+        phNode.setPosition(0, 0, 0);
+        const phUt = phNode.addComponent(UITransform);
+        phUt.setContentSize(400, 36);
+        phUt.setAnchorPoint(0.5, 0.5);
         const phLab = phNode.addComponent(Label);
         phLab.string = '例如 WELCOME';
         phLab.fontSize = 16;
         phLab.color = new Color(140, 120, 100, 200);
         phLab.horizontalAlign = HorizontalTextAlignment.CENTER;
         phLab.verticalAlign = VerticalTextAlignment.CENTER;
+        phLab.overflow = Overflow.CLAMP;
 
         const edit = editNode.addComponent(EditBox);
         edit.string = '';
@@ -97,8 +109,18 @@ export class RedeemUI {
         edit.inputFlag = EditBox.InputFlag.SENSITIVE;
         edit.returnType = EditBox.KeyboardReturnType.DONE;
         edit.textLabel = textLab;
-        edit.placeholderLabel = phLab;
-        edit.placeholder = '例如 WELCOME';
+        edit.placeholder = '';
+        const syncPlaceholder = () => {
+            const has = !!(edit.string || textLab.string || '').trim();
+            phNode.active = !has;
+            textLab.horizontalAlign = HorizontalTextAlignment.CENTER;
+            textLab.verticalAlign = VerticalTextAlignment.CENTER;
+            textLabNode.setPosition(0, 0, 0);
+        };
+        editNode.on(EditBox.EventType.TEXT_CHANGED, syncPlaceholder);
+        editNode.on(EditBox.EventType.EDITING_DID_BEGAN, () => { phNode.active = false; });
+        editNode.on(EditBox.EventType.EDITING_DID_ENDED, syncPlaceholder);
+        syncPlaceholder();
 
         const tipNode = makeLabel(panel, '', 0, 28, 12, UiTone.muted, 480);
         const tipLbl = tipNode.getComponent(Label)!;
@@ -111,7 +133,7 @@ export class RedeemUI {
             makeButton(panel, c.code, x, -42, () => {
                 edit.string = c.code;
                 textLab.string = c.code;
-                phNode.active = false;
+                syncPlaceholder();
                 tipLbl.string = c.title;
                 tipLbl.color = UiTone.accent;
             }, { w: 100, h: 32, color: new Color(70, 55, 40, 255), fontSize: 12 });
