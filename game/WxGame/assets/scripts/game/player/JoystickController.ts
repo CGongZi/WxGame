@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, Vec2, Vec3, input, Input, EventTouch,
-         UITransform, Graphics, Color, view } from 'cc';
+         UITransform, Graphics, Color, view, Layers } from 'cc';
 import { PlayerController } from './PlayerController';
 import { WeaponController } from '../weapon/WeaponController';
 import { GameFlow, FlowEvents } from '../../core/GameFlow';
@@ -11,6 +11,7 @@ const { ccclass, property } = _decorator;
  * 双轮盘操控（手机）
  * 左：移动摇杆 · 右：攻击键+方向轮盘（长按连发）
  * Lobby 态隐藏；Playing 态常驻底角，触摸跟手后再归位（#166）
+ * #196：场景 JoystickBg/Thumb 原先无 Graphics → 真机「能搓屏但看不见轮盘」；运行时补画。
  */
 @ccclass('JoystickController')
 export class JoystickController extends Component {
@@ -36,16 +37,18 @@ export class JoystickController extends Component {
     private _atkBg: Node | null = null;
     private _atkThumb: Node | null = null;
 
-    /** 局内常驻底角（设计坐标，Canvas 中心为 0） */
-    private static readonly REST_MOVE = new Vec3(-460, -200, 0);
-    private static readonly REST_ATK = new Vec3(460, -200, 0);
+    /** 局内常驻底角（设计坐标，Canvas 中心为 0；略内收避开微信安全区） */
+    private static readonly REST_MOVE = new Vec3(-420, -180, 0);
+    private static readonly REST_ATK = new Vec3(420, -180, 0);
 
     onLoad() {
-        if (this.joystickBg) this.joystickBg.active = false;
         if (this.player) {
             this._weaponCtrl = this.player.getComponent(WeaponController);
         }
+        this._ensureMovePadVisual();
         this._ensureAttackPad();
+        if (this.joystickBg) this.joystickBg.active = false;
+        if (this._atkBg) this._atkBg.active = false;
     }
 
     onEnable() {
@@ -104,6 +107,7 @@ export class JoystickController extends Component {
         this.joystickBg.setPosition(JoystickController.REST_MOVE);
         this.joystickBg.active = true;
         if (this.joystickThumb) this.joystickThumb.setPosition(0, 0, 0);
+        this._bringPadsForward();
     }
 
     private _parkAttackPad() {
@@ -111,30 +115,100 @@ export class JoystickController extends Component {
         this._atkBg.setPosition(JoystickController.REST_ATK);
         this._atkBg.active = true;
         if (this._atkThumb) this._atkThumb.setPosition(0, 0, 0);
+        this._bringPadsForward();
+    }
+
+    /** 场景里的 JoystickBg/Thumb 只有 UITransform、无贴图 → 补画圆盘（与攻击盘同风格） */
+    private _ensureMovePadVisual() {
+        const parent = this.node.parent ?? this.node;
+        if (!this.joystickBg?.isValid) {
+            const bg = new Node('JoystickBg');
+            bg.layer = Layers.Enum.UI_2D;
+            bg.setParent(parent);
+            bg.addComponent(UITransform).setContentSize(160, 160);
+            this.joystickBg = bg;
+            const thumb = new Node('JoystickThumb');
+            thumb.layer = Layers.Enum.UI_2D;
+            thumb.setParent(bg);
+            thumb.addComponent(UITransform).setContentSize(56, 56);
+            this.joystickThumb = thumb;
+        }
+        this.joystickBg.layer = Layers.Enum.UI_2D;
+        const bgUi = this.joystickBg.getComponent(UITransform)
+            ?? this.joystickBg.addComponent(UITransform);
+        bgUi.setContentSize(160, 160);
+
+        let bgG = this.joystickBg.getComponent(Graphics);
+        if (!bgG) bgG = this.joystickBg.addComponent(Graphics);
+        bgG.clear();
+        bgG.fillColor = new Color(24, 36, 48, 160);
+        bgG.circle(0, 0, 72); bgG.fill();
+        bgG.strokeColor = new Color(120, 190, 255, 210);
+        bgG.lineWidth = 3; bgG.circle(0, 0, 72); bgG.stroke();
+        bgG.fillColor = new Color(80, 140, 200, 40);
+        bgG.circle(0, 0, 28); bgG.fill();
+
+        if (!this.joystickThumb?.isValid) {
+            const thumb = new Node('JoystickThumb');
+            thumb.layer = Layers.Enum.UI_2D;
+            thumb.setParent(this.joystickBg);
+            thumb.addComponent(UITransform).setContentSize(56, 56);
+            this.joystickThumb = thumb;
+        }
+        this.joystickThumb.layer = Layers.Enum.UI_2D;
+        if (this.joystickThumb.parent !== this.joystickBg) {
+            this.joystickThumb.setParent(this.joystickBg);
+            this.joystickThumb.setPosition(0, 0, 0);
+        }
+        const thUi = this.joystickThumb.getComponent(UITransform)
+            ?? this.joystickThumb.addComponent(UITransform);
+        thUi.setContentSize(56, 56);
+        let thG = this.joystickThumb.getComponent(Graphics);
+        if (!thG) thG = this.joystickThumb.addComponent(Graphics);
+        thG.clear();
+        thG.fillColor = new Color(140, 210, 255, 230);
+        thG.circle(0, 0, 24); thG.fill();
+        thG.strokeColor = new Color(220, 240, 255, 200);
+        thG.lineWidth = 2; thG.circle(0, 0, 24); thG.stroke();
+
+        this.joystickBg.active = false;
     }
 
     private _ensureAttackPad() {
         if (this._atkBg?.isValid) return;
-        const parent = this.joystickBg?.parent ?? this.node;
+        const parent = this.joystickBg?.parent ?? this.node.parent ?? this.node;
         const bg = new Node('AttackPadBg');
+        bg.layer = Layers.Enum.UI_2D;
         bg.setParent(parent);
         bg.addComponent(UITransform).setContentSize(160, 160);
         const g = bg.addComponent(Graphics);
-        g.fillColor = new Color(40, 20, 20, 150);
+        g.fillColor = new Color(48, 24, 20, 160);
         g.circle(0, 0, 72); g.fill();
-        g.strokeColor = new Color(255, 120, 80, 200);
+        g.strokeColor = new Color(255, 130, 90, 210);
         g.lineWidth = 3; g.circle(0, 0, 72); g.stroke();
+        g.fillColor = new Color(255, 100, 60, 40);
+        g.circle(0, 0, 28); g.fill();
         bg.active = false;
 
         const thumb = new Node('AttackPadThumb');
+        thumb.layer = Layers.Enum.UI_2D;
         thumb.setParent(bg);
-        thumb.addComponent(UITransform).setContentSize(48, 48);
+        thumb.addComponent(UITransform).setContentSize(56, 56);
         const tg = thumb.addComponent(Graphics);
-        tg.fillColor = new Color(255, 100, 60, 230);
+        tg.fillColor = new Color(255, 120, 70, 230);
         tg.circle(0, 0, 24); tg.fill();
+        tg.strokeColor = new Color(255, 220, 180, 200);
+        tg.lineWidth = 2; tg.circle(0, 0, 24); tg.stroke();
 
         this._atkBg = bg;
         this._atkThumb = thumb;
+    }
+
+    private _bringPadsForward() {
+        const parent = this.joystickBg?.parent;
+        if (!parent) return;
+        if (this.joystickBg?.isValid) this.joystickBg.setSiblingIndex(parent.children.length - 1);
+        if (this._atkBg?.isValid) this._atkBg.setSiblingIndex(parent.children.length - 1);
     }
 
     /** UI 触摸点 → 轮盘父节点本地（Canvas 中心为 0） */

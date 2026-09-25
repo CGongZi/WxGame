@@ -21,6 +21,9 @@
  * Lobby state: both pads hidden.
  * Playing state: pads **always visible** at bottom corners; touch relocates to finger,
  * release returns to rest (do not hide). Touch→local via UITransform.convertToNodeSpaceAR.
+ * **Move pad visuals**: scene JoystickBg/Thumb historically had UITransform only — paint
+ * Graphics at runtime (`_ensureMovePadVisual`) or the left pad is invisible while left-half
+ * touch still moves the player (feels like “rubbing the screen”).
  * Soft-aim blend ≤0.08 while attack-pad dragging (指哪打哪).
  * **HUD bottom band** (WeaponBar ≈ y −230…−280 + Hotbar ≈ −280…−370, |x|<280):
  * JoystickController must ignore these touches so bag/potion/weapon-switch taps
