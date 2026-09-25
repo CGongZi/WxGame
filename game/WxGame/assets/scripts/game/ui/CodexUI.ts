@@ -500,7 +500,7 @@ export class CodexUI {
         if (!themes.some(t => t.id === CodexUI._pickMap)) CodexUI._pickMap = themes[0]?.id ?? '';
         const cells = themes.map(t => {
             const open = gm?.hasCodexTheme(t.id) ?? false;
-            return { id: t.id, emoji: open ? t.emoji : '?', name: open ? t.name : '？？', unlocked: open, art: 'none' as ThumbArtKind };
+            return { id: t.id, emoji: open ? t.emoji : '?', name: open ? t.name : '未探索', unlocked: open, art: 'none' as ThumbArtKind };
         });
         CodexUI._gallery(list, cells, () => CodexUI._pickMap, (id) => {
             CodexUI._pickMap = id;
@@ -513,11 +513,11 @@ export class CodexUI {
                 detail, '', '',
                 open
                     ? `${theme.blurb || terrainDesc(theme.obstacleStyle)}\n出现层 ${theme.floorMin}–${theme.floorMax}`
-                    : '？？',
+                    : '未探索',
                 -36,
             );
             CodexUI._lbl(
-                detail, open ? theme.name : '？？？', 0, CodexUI._galleryH / 2 - 18, 16,
+                detail, open ? theme.name : '未探索', 0, CodexUI._galleryH / 2 - 18, 16,
                 new Color(235, 225, 245, 255), DETAIL_W - 28,
             );
         });
